@@ -45,7 +45,7 @@ O **OhmFlow** guarda quantos resistores de cada valor existem no laboratório: c
 
 **Usar:** baixe o `ohm_flow_setup.exe` em [Releases](https://github.com/Grolla05/OhmFlow/releases) e instale.
 
-**Compilar:** com MSYS2 (gcc + make) configurado, rode `make` e depois `.\dist\ohmflow.exe`. O passo a passo está em [docs/05-build-e-ambiente.md](docs/05-build-e-ambiente.md).
+**Compilar:** com MSYS2 (gcc + make + sqlite3) configurado, rode `make` e depois `.\dist\ohmflow.exe`. O passo a passo está em [docs/05-build-e-ambiente.md](docs/05-build-e-ambiente.md).
 
 ## 📚 Documentação
 

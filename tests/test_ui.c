@@ -742,10 +742,35 @@ static void teste_espacar_titulo(void)
     ASSERT_STR_EQ("Checkpoint da sess\xC3\xA3o", buf);
 }
 
+static void teste_tipo_terminal(void)
+{
+    ASSERT_EQ_INT(UI_TERM_CONHOST, ui_tipo_terminal("ConsoleWindowClass", NULL, NULL));
+    ASSERT_EQ_INT(UI_TERM_WINDOWS_TERMINAL, ui_tipo_terminal("PseudoConsoleWindow", NULL, NULL));
+    ASSERT_EQ_INT(UI_TERM_WINDOWS_TERMINAL, ui_tipo_terminal("", "uuid-da-sessao", NULL));
+    ASSERT_EQ_INT(UI_TERM_WINDOWS_TERMINAL, ui_tipo_terminal(NULL, "uuid-da-sessao", NULL));
+    ASSERT_EQ_INT(UI_TERM_WINDOWS_TERMINAL, ui_tipo_terminal("PseudoConsoleWindow", "", NULL));
+    /* VS Code também usa pseudoconsole: F11 ali mexeria no editor */
+    ASSERT_EQ_INT(UI_TERM_OUTRO, ui_tipo_terminal("PseudoConsoleWindow", NULL, "vscode"));
+    ASSERT_EQ_INT(UI_TERM_OUTRO, ui_tipo_terminal("PseudoConsoleWindow", "x", "vscode"));
+    ASSERT_EQ_INT(UI_TERM_OUTRO, ui_tipo_terminal("OutraJanela", NULL, NULL));
+    ASSERT_EQ_INT(UI_TERM_OUTRO, ui_tipo_terminal(NULL, NULL, NULL));
+}
+
+/* Sem terminal (e2e, CI) a tela cheia não faz nada e sair é seguro */
+static void teste_tela_cheia_sem_terminal(void)
+{
+    ui_definir_interativo(0);
+    ui_tela_cheia();
+    ui_sair_tela_cheia();
+    ASSERT_EQ_INT(0, ui_interativo());
+}
+
 int main(void)
 {
     ui_init();
     printf("test_ui\n");
+    RUN_TEST(teste_tipo_terminal);
+    RUN_TEST(teste_tela_cheia_sem_terminal);
     RUN_TEST(teste_largura_ascii);
     RUN_TEST(teste_largura_utf8);
     RUN_TEST(teste_largura_ignora_ansi);

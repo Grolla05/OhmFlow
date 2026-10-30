@@ -40,7 +40,7 @@ As funcionalidades documentadas são:
 | # | Funcionalidade | # | Funcionalidade |
 | --- | --- | --- | --- |
 | 00 | [Boas-vindas e menu](funcionalidades/00-boas-vindas-e-menu.md) | 07 | [Reinicializar](funcionalidades/07-reinicializar.md) |
-| 01 | [Novo](funcionalidades/01-novo.md) | 08 | [Diferencial](funcionalidades/08-diferencial.md) |
+| 01 | [Novo](funcionalidades/01-novo.md) | 08 | — |
 | 02 | [Remover](funcionalidades/02-remover.md) | 09 | [Histórico](funcionalidades/09-historico.md) |
 | 03 | [Listar](funcionalidades/03-listar.md) | 10 | [Desfazer e refazer](funcionalidades/10-desfazer-refazer.md) |
 | 04 | [Consultar](funcionalidades/04-consultar.md) | 11 | [Registro de ações (log)](funcionalidades/11-registro-de-acoes.md) |
@@ -102,7 +102,7 @@ Os módulos do código-fonte são:
 | --- | --- |
 | [README.md](../README.md) | Cartão de boas-vindas do projeto (prints, links e equipe) |
 | [refs/Aula_07_Projeto01_22_10_2026.pdf](../refs/Aula_07_Projeto01_22_10_2026.pdf) | Enunciado oficial do trabalho |
-| [refs/BRAINSTORM.md](../refs/BRAINSTORM.md) | Ideias para o item diferencial (opção 8 do menu) |
+| [refs/BRAINSTORM.md](../refs/BRAINSTORM.md) | Ideias levantadas para o item diferencial |
 | [.github/CONTRIBUTING.md](../.github/CONTRIBUTING.md) | Guia de contribuição |
 | [.github/COMMIT_CONVENTION.md](../.github/COMMIT_CONVENTION.md) | Padrão das mensagens de commit |
 | [.github/SECURITY.md](../.github/SECURITY.md) | Como reportar problemas de segurança |

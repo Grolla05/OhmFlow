@@ -24,6 +24,7 @@ A Tabela 1 sugere a ordem de leitura, das bases para cima.
 | 4 | [Pilha](pilha.md) | `pilha.h`, `pilha.c` | 160 | lista (tipo `Resistor`) |
 | 5 | [Checkpoint](checkpoint.md) | `checkpoint.h`, `checkpoint.c` | 360 | pilha, lista |
 | 6 | [Log](log.md) | `log.h`, `log.c` | 400 | — |
+| 6b | [Persistência](persistencia.md) | `persistencia.h`, `persistencia.c` | 150 | lista |
 | 7 | [UI](ui.md) | `ui/ui.h`, `ui/ui.c` | 780 | — |
 | 8 | [Telas](telas.md) | `ui/telas.h`, `ui/telas.c` | 1440 | todos acima |
 | 9 | [Main](main.md) | `main.c`, `assets/ohmflow.rc` | 100 | todos acima |

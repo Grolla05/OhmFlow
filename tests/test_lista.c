@@ -319,7 +319,7 @@ static void teste_contadores_invariantes(void)
     libera_lista(li);
 }
 
-/* ---- passos da busca (parada antecipada) --------------------------- */
+/* ---- busca binária -------------------------------------------------- */
 
 static void teste_passos_busca(void)
 {
@@ -329,17 +329,119 @@ static void teste_passos_busca(void)
     libera_lista(li);
 
     li = lista_padrao();                          /* 220 -> 4,7k -> 1M      */
-    consulta_lista(li, 100, NULL);
-    ASSERT_EQ_INT(1, lista_passos(li));           /* antes do primeiro      */
-    consulta_lista(li, 220, NULL);
-    ASSERT_EQ_INT(1, lista_passos(li));
-    consulta_lista(li, 330, NULL);
-    ASSERT_EQ_INT(2, lista_passos(li));           /* para em 4,7k           */
     consulta_lista(li, 4700, NULL);
-    ASSERT_EQ_INT(2, lista_passos(li));
+    ASSERT_EQ_INT(1, lista_passos(li));           /* o meio é o procurado   */
+    consulta_lista(li, 220, NULL);
+    ASSERT_EQ_INT(2, lista_passos(li));           /* meio, depois esquerda  */
+    consulta_lista(li, 1e6, NULL);
+    ASSERT_EQ_INT(2, lista_passos(li));           /* meio, depois direita   */
+    consulta_lista(li, 100, NULL);
+    ASSERT_EQ_INT(2, lista_passos(li));           /* antes do primeiro      */
     consulta_lista(li, 2e6, NULL);
-    ASSERT_EQ_INT(3, lista_passos(li));           /* depois do último       */
+    ASSERT_EQ_INT(2, lista_passos(li));           /* depois do último       */
     ASSERT_EQ_INT(0, lista_passos(NULL));
+    libera_lista(li);
+}
+
+/* Confere a ordem crescente e a contagem via percorre_lista */
+typedef struct {
+    double anterior;
+    int    n;
+    int    em_ordem;
+} Ordem;
+
+static void ordem_cb(const Resistor *r, void *ctx)
+{
+    Ordem *o = ctx;
+    if (o->n > 0 && !(o->anterior < r->resistencia)) o->em_ordem = 0;
+    o->anterior = r->resistencia;
+    o->n++;
+}
+
+static void confere_ordem(const Lista *li, int esperado)
+{
+    Ordem o;
+    o.anterior = 0;
+    o.n = 0;
+    o.em_ordem = 1;
+    percorre_lista(li, ordem_cb, &o);
+    ASSERT_EQ_INT(esperado, o.n);
+    ASSERT_EQ_INT(esperado, tamanho_lista(li));
+    ASSERT_TRUE(o.em_ordem);
+}
+
+#define TIPOS_BUSCA 1023 /* 2^10 - 1: a busca binária decide em até 10 passos */
+
+/* Toda busca, com ou sem sucesso, cabe em log2(n + 1) passos */
+static void teste_busca_passos_logaritmicos(void)
+{
+    Lista *li = cria_lista();
+    int i, maior = 0, qtd = 0;
+    for (i = 1; i <= TIPOS_BUSCA; i++)
+        ASSERT_EQ_INT(LISTA_OK, insere_lista_ordenada(li, R(i, i)));
+    for (i = 1; i <= TIPOS_BUSCA; i++) {
+        ASSERT_EQ_INT(LISTA_OK, consulta_lista(li, i, &qtd));
+        ASSERT_EQ_INT(i, qtd);
+        if (lista_passos(li) > maior) maior = lista_passos(li);
+        ASSERT_EQ_INT(LISTA_NAO_ENCONTRADO, consulta_lista(li, i + 0.5, NULL));
+        if (lista_passos(li) > maior) maior = lista_passos(li);
+    }
+    ASSERT_EQ_INT(10, maior);
+    libera_lista(li);
+}
+
+static void teste_insercao_mantem_ordem(void)
+{
+    Lista *li = cria_lista();
+    int i;
+    for (i = 1; i <= 100; i++) insere_lista_ordenada(li, R(i, 1));          /* crescente   */
+    confere_ordem(li, 100);
+    reinicializa_lista(li);
+    for (i = 100; i >= 1; i--) insere_lista_ordenada(li, R(i, 1));          /* decrescente */
+    confere_ordem(li, 100);
+    reinicializa_lista(li);
+    for (i = 0; i < 1000; i++) insere_lista_ordenada(li, R(1 + (i * 37) % 1000, 1)); /* embaralhada */
+    confere_ordem(li, 1000);
+    ASSERT_EQ_INT(1000, total_pecas(li));
+    libera_lista(li);
+}
+
+/* Remoção no início, no meio e no fim mantém busca e encadeamento coerentes */
+static void teste_remocao_mantem_busca(void)
+{
+    Lista *li = cria_lista();
+    int i, qtd = 0;
+    for (i = 1; i <= 50; i++) insere_lista_ordenada(li, R(i, i));
+    ASSERT_EQ_INT(LISTA_OK, remove_lista(li, 1));
+    ASSERT_EQ_INT(LISTA_OK, remove_lista(li, 25));
+    ASSERT_EQ_INT(LISTA_OK, remove_lista(li, 50));
+    confere_ordem(li, 47);
+    ASSERT_EQ_INT(LISTA_NAO_ENCONTRADO, consulta_lista(li, 25, NULL));
+    ASSERT_EQ_INT(LISTA_OK, consulta_lista(li, 49, &qtd));
+    ASSERT_EQ_INT(49, qtd);
+    ASSERT_EQ_INT(LISTA_OK, insere_lista_ordenada(li, R(25, 7)));
+    ASSERT_EQ_INT(LISTA_OK, consulta_lista(li, 25, &qtd));
+    ASSERT_EQ_INT(7, qtd);
+    confere_ordem(li, 48);
+    while (!lista_vazia(li)) { /* esvazia pelo início: vetor e nós juntos */
+        Coleta c = coleta(li);
+        ASSERT_EQ_INT(LISTA_OK, remove_lista(li, c.itens[0].resistencia));
+    }
+    confere_ordem(li, 0);
+    libera_lista(li);
+}
+
+/* Depois de reinicializar, o vetor continua utilizável */
+static void teste_reinicializa_e_reusa(void)
+{
+    Lista *li = cria_lista();
+    int i, qtd = 0;
+    for (i = 1; i <= 20; i++) insere_lista_ordenada(li, R(i, 1));
+    reinicializa_lista(li);
+    ASSERT_EQ_INT(LISTA_NAO_ENCONTRADO, consulta_lista(li, 10, NULL));
+    ASSERT_EQ_INT(LISTA_OK, insere_lista_ordenada(li, R(10, 3)));
+    ASSERT_EQ_INT(LISTA_OK, consulta_lista(li, 10, &qtd));
+    ASSERT_EQ_INT(3, qtd);
     libera_lista(li);
 }
 
@@ -397,6 +499,10 @@ int main(void)
     RUN_TEST(teste_reinicializa);
     RUN_TEST(teste_contadores_invariantes);
     RUN_TEST(teste_passos_busca);
+    RUN_TEST(teste_busca_passos_logaritmicos);
+    RUN_TEST(teste_insercao_mantem_ordem);
+    RUN_TEST(teste_remocao_mantem_busca);
+    RUN_TEST(teste_reinicializa_e_reusa);
     RUN_TEST(teste_lista_nula);
     RUN_TEST(teste_mesma_resistencia);
     return tf_resumo("test_lista");

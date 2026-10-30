@@ -1,8 +1,8 @@
 # 09 — Histórico
 
-← Anterior: [08 — Diferencial](08-diferencial.md) · [Funcionalidades](README.md) · Próximo: [10 — Desfazer e refazer](10-desfazer-refazer.md)
+← Anterior: [07 — Reinicializar](07-reinicializar.md) · [Funcionalidades](README.md) · Próximo: [10 — Desfazer e refazer](10-desfazer-refazer.md)
 
-**Menu:** `[9] Histórico`
+**Menu:** `[8] Histórico`
 **Código:** `tela_historico`, `tabela_log`, `corta`, `cor_do_nivel` em [src/ui/telas.c](../../src/ui/telas.c); `log_ultimas` em [src/log.c](../../src/log.c)
 **Testes:** [tests/test_telas.c](../../tests/test_telas.c), [tests/test_log.c](../../tests/test_log.c), e2e
 
@@ -80,4 +80,4 @@ A tela junta duas fontes:
 
 ---
 
-← Anterior: [08 — Diferencial](08-diferencial.md) · [Funcionalidades](README.md) · Próximo: [10 — Desfazer e refazer](10-desfazer-refazer.md)
+← Anterior: [07 — Reinicializar](07-reinicializar.md) · [Funcionalidades](README.md) · Próximo: [10 — Desfazer e refazer](10-desfazer-refazer.md)

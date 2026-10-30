@@ -1,6 +1,6 @@
 # 07 — Inicializar / Reinicializar (esvaziar o estoque)
 
-← Anterior: [06 — Repor](06-repor.md) · [Funcionalidades](README.md) · Próximo: [08 — Diferencial](08-diferencial.md)
+← Anterior: [06 — Repor](06-repor.md) · [Funcionalidades](README.md) · Próximo: [09 — Histórico](09-historico.md)
 
 **Menu:** `[7] Reinicializar`
 **Código:** `tela_reinicializar` em [src/ui/telas.c](../../src/ui/telas.c); `reinicializa_lista` em [src/lista.c](../../src/lista.c); `ck_registra_reinicializar` em [src/checkpoint.c](../../src/checkpoint.c)
@@ -82,4 +82,4 @@ Esta é a ação em que o desfazer mais importa. **Desfazer reinsere todos os it
 
 ---
 
-← Anterior: [06 — Repor](06-repor.md) · [Funcionalidades](README.md) · Próximo: [08 — Diferencial](08-diferencial.md)
+← Anterior: [06 — Repor](06-repor.md) · [Funcionalidades](README.md) · Próximo: [09 — Histórico](09-historico.md)

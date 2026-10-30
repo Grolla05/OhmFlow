@@ -24,21 +24,25 @@ int main(void)
 
     ui_init();                                 /* 1 */
     ui_definir_centralizado(ui_interativo());  /* 2 */
+    ui_tela_cheia();
     estoque = cria_lista();                    /* 3 */
     checkpoint = cria_checkpoint();            /* 4 */
     if (estoque == NULL || checkpoint == NULL) { ... return EXIT_FAILURE; } /* 5 */
     telas_definir_checkpoint(checkpoint);      /* 6 */
     if (!log_iniciar()) ui_mensagem(UI_AVISO, "...seguindo sem registro."); /* 7 */
+    pode_salvar = carrega_estoque(estoque, banco, sizeof banco); /* 7b */
 
     tela_boas_vindas();                        /* 8 */
     while ((opcao = tela_menu(estoque)) != OPCAO_SAIR) {   /* 9 */
         switch (opcao) { case OPCAO_INSERIR: tela_inserir(estoque); break; ... }
     }
+    if (pode_salvar) salva_estoque(estoque, banco);
     tela_encerramento(estoque);                /* 10 */
     log_encerrar();                            /* 11 */
     telas_definir_checkpoint(NULL);            /* 12 */
     libera_checkpoint(checkpoint);
     libera_lista(estoque);
+    ui_sair_tela_cheia();
     return EXIT_SUCCESS;
 }
 ```
@@ -48,15 +52,16 @@ int main(void)
 | Passo | O que faz | Por quê |
 | --- | --- | --- |
 | 1 | `ui_init`: UTF-8, cores, título, ícone | Precisa vir antes de qualquer saída |
-| 2 | Centraliza as telas só se houver terminal | Nos testes, saída previsível sem recuos variáveis |
+| 2 | Centraliza as telas só se houver terminal e chama `ui_tela_cheia` | Nos testes, saída previsível sem recuos variáveis nem mudança de janela |
 | 3 | Cria a lista vazia | Requisito "inicializar a lista" |
-| 4 | Cria as pilhas de desfazer/refazer | Usadas pelo [9] Histórico |
+| 4 | Cria as pilhas de desfazer/refazer | Usadas pelo [8] Histórico |
 | 5 | Se faltar memória, avisa e sai liberando o que foi criado | `libera_*` aceitam `NULL`, então é seguro liberar os dois |
 | 6 | Entrega o checkpoint às telas | As telas registram cada ação |
 | 7 | Abre a sessão do log; se falhar, segue sem log | Log é "best effort" ([Log](log.md)) |
+| 7b | `carrega_estoque` lê o banco; se falhar, avisa e desliga o salvamento | Único acesso de leitura ([Persistência](persistencia.md)) |
 | 8–9 | Boas-vindas e laço do menu | Uma volta por opção escolhida |
-| 10–11 | Tela final e rodapé do log com a duração | — |
-| 12 | Desliga o checkpoint das telas e libera tudo | **Nenhum vazamento**: cada `cria_*` tem seu `libera_*` |
+| 10–11 | `salva_estoque`, tela final e rodapé do log com a duração | Único acesso de escrita ao banco, antes de `log_encerrar` para registrar o resultado |
+| 12 | Desliga o checkpoint das telas, libera tudo e sai da tela cheia | **Nenhum vazamento**: cada `cria_*` tem seu `libera_*` |
 
 ## 3. Integração com o Windows
 

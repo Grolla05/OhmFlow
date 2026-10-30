@@ -39,7 +39,6 @@
 #define ALTURA_CONSULTAR      12
 #define ALTURA_MOVIMENTO      15 /* retirar e repor */
 #define ALTURA_REINICIALIZAR  17
-#define ALTURA_DIFERENCIAL    10
 #define ALTURA_ENCERRAMENTO   4
 #define ALTURA_HISTORICO_BASE 10 /* + uma linha por ação */
 
@@ -383,6 +382,17 @@ static void boas_vindas_texto(int cols, int rows)
     }
 }
 
+/* Banner ANSI Shadow centralizado na largura do terminal */
+static void imprime_banner(int cols)
+{
+    char linha[BANNER_TAM_LINHA];
+    int i, esq = (cols - BANNER_COLUNAS) / 2;
+    for (i = 0; i < BANNER_LINHAS; i++) {
+        banner_linha(i, linha, sizeof linha);
+        printf("%*s%s\n", esq, "", linha);
+    }
+}
+
 /* Banner ANSI Shadow + subtítulo + "► [ PRESSIONE ENTER ] ◄" em caixa dupla */
 static void boas_vindas_banner(int cols, int rows)
 {
@@ -393,7 +403,6 @@ static void boas_vindas_banner(int cols, int rows)
     static const char *const MSG[1] = {
         "\xE2\x96\xBA [ PRESSIONE ENTER PARA COME\xC3\x87" "AR ] \xE2\x97\x84"
     };
-    char linha[BANNER_TAM_LINHA];
     const char *sec = ui_cor(UI_COR_SECUNDARIA);
     const char *dim = ui_cor(UI_COR_DIM);
     const char *rs  = ui_cor(UI_COR_RESET);
@@ -404,11 +413,7 @@ static void boas_vindas_banner(int cols, int rows)
     if (topo < 1) topo = 1;
     for (i = 0; i < topo; i++) putchar('\n');
 
-    esq = (cols - BANNER_COLUNAS) / 2;
-    for (i = 0; i < BANNER_LINHAS; i++) {
-        banner_linha(i, linha, sizeof linha);
-        printf("%*s%s\n", esq, "", linha);
-    }
+    imprime_banner(cols);
     putchar('\n');
 
     esq = (cols - (int)ui_largura(SUBTITULO)) / 2;
@@ -573,6 +578,8 @@ static int ler_tecla(void)
 #endif
 }
 
+#define MENU_LINHAS_GRADE 4 /* linhas da grade de opções */
+
 int navegar_menu(int selecao, int tecla)
 {
     int col, row;
@@ -587,42 +594,27 @@ int navegar_menu(int selecao, int tecla)
         tecla != KEY_LEFT && tecla != KEY_RIGHT)
         return selecao;
 
-    /* Converte seleção para (col, row) */
-    if (selecao == OPCAO_HISTORICO) {
-        row = 4;
-        col = 0; /* coluna padrão ao sair do Histórico */
-    } else if (selecao >= 1 && selecao <= 4) {
-        col = 0;
-        row = selecao - 1;
-    } else { /* 5-8 */
-        col = 1;
-        row = selecao - 5;
-    }
+    /* Converte seleção para (col, row): 1-4 na esquerda, 5-8 na direita */
+    col = (selecao - 1) / MENU_LINHAS_GRADE;
+    row = (selecao - 1) % MENU_LINHAS_GRADE;
 
     switch (tecla) {
-    case KEY_UP:
-        if (row == 4) { row = 3; } /* do Histórico vai para linha 3 */
-        else if (row == 0) { row = 4; } /* do topo vai para o Histórico */
-        else row--;
+    case KEY_UP:   /* dá a volta na mesma coluna */
+        row = (row + MENU_LINHAS_GRADE - 1) % MENU_LINHAS_GRADE;
         break;
     case KEY_DOWN:
-        if (row == 4) { row = 0; } /* do Histórico vai para linha 0 */
-        else if (row == 3) { row = 4; } /* da última linha vai para o Histórico */
-        else row++;
+        row = (row + 1) % MENU_LINHAS_GRADE;
         break;
     case KEY_LEFT:
-        if (row < 4) col = 0;
+        col = 0;
         break;
-    case KEY_RIGHT:
-        if (row < 4) col = 1;
-        break;
-    default:
+    default:       /* KEY_RIGHT */
+        col = 1;
         break;
     }
 
     /* Converte de volta para seleção */
-    if (row == 4) return OPCAO_HISTORICO;
-    return col == 0 ? row + 1 : row + 5;
+    return col * MENU_LINHAS_GRADE + row + 1;
 }
 
 int menu_tecla_opcao(int tecla, int selecao)
@@ -630,7 +622,7 @@ int menu_tecla_opcao(int tecla, int selecao)
     /* Esc, tecla 0 ou fim da entrada (EOF, Ctrl+D, terminal fechado) saem */
     if (tecla == KEY_ESC || tecla == KEY_FIM || tecla == '0') return OPCAO_SAIR;
 
-    /* Acesso rápido por dígito (1-9) */
+    /* Acesso rápido por dígito (1-8) */
     if (tecla >= '1' && tecla < '0' + OPCAO_TOTAL) return tecla - '0';
 
     /* Enter confirma seleção atual */
@@ -642,6 +634,12 @@ int menu_tecla_opcao(int tecla, int selecao)
 /* Larguras do rótulo em cada coluna do menu (maior rótulo de cada lado) */
 #define MENU_ROTULO_ESQ 9  /* "Consultar"     */
 #define MENU_ROTULO_DIR 13 /* "Reinicializar" */
+
+/* Largura interna do card: as duas colunas da grade têm 38 colunas, das quais
+ * 3 à esquerda são recuo; somando 6 (respiro + 2 à direita) a grade fica com a
+ * mesma folga dos dois lados */
+#define MENU_LARGURA (UI_LARGURA + 6)
+#define MENU_CONTEUDO (MENU_LARGURA - 4) /* descontado o respiro de 2 + 2 */
 
 /* Célula de uma opção do menu. A opção ativa tem o chevron › em laranja
  * sobre o fundo 236; na `fase` 0 (meio da animação) o chevron ainda está
@@ -664,23 +662,24 @@ static void celula_menu(char *buf, size_t n, int num, const char *rotulo, int la
     }
 }
 
-/* Desenha o menu; `fase` 0 é o quadro intermediário da animação do foco */
-static void desenha_menu_fase(const Lista *li, int selecao, int fase)
+/* Desenha o menu; `fase` 0 é o quadro intermediário da animação do foco.
+ * Com `com_banner`, o título já está no topo da tela e sai da borda do card */
+static void desenha_menu_fase(const Lista *li, int selecao, int fase, int com_banner)
 {
     static const char *const ROTULOS[OPCAO_TOTAL] = {
         "", "Novo", "Remover", "Listar", "Consultar",
-        "Retirar", "Repor", "Reinicializar", "(diferencial)", "Hist\xc3\xb3rico"
+        "Retirar", "Repor", "Reinicializar", "Hist\xc3\xb3rico"
     };
-    char linhas[7][320], esq[160], dir[160], titulo[64], cab[96], vazio[96];
-    const char *ptrs[7];
+    char linhas[6][320], esq[160], dir[160], titulo[64], cab[96], vazio[96], meta[256];
+    const char *ptrs[6];
     const char *sec   = ui_cor(UI_COR_SECUNDARIA);
     const char *cinza = ui_cor(UI_COR_CINZA);
     const char *bold  = ui_cor(UI_COR_NEGRITO);
     const char *rs    = ui_cor(UI_COR_RESET);
     const char *dim   = ui_cor(UI_COR_DIM);
-    int i, cols = ui_colunas_terminal();
+    int i, recuo, cols = ui_colunas_terminal();
 
-    for (i = 0; i < 4; i++) {
+    for (i = 0; i < MENU_LINHAS_GRADE; i++) {
         int num_esq = i + 1, num_dir = i + 5;
         celula_menu(esq, sizeof esq, num_esq, ROTULOS[num_esq], MENU_ROTULO_ESQ,
                     selecao == num_esq, fase);
@@ -689,12 +688,8 @@ static void desenha_menu_fase(const Lista *li, int selecao, int fase)
         snprintf(linhas[i], sizeof linhas[i], "%s%s", esq, dir);
         ptrs[i] = linhas[i];
     }
-    /* [9] Histórico na linha de baixo */
-    celula_menu(linhas[4], sizeof linhas[4], OPCAO_HISTORICO, ROTULOS[OPCAO_HISTORICO],
-                MENU_ROTULO_ESQ, selecao == OPCAO_HISTORICO, fase);
+    linhas[4][0] = '\0';
     ptrs[4] = linhas[4];
-    linhas[5][0] = '\0';
-    ptrs[5] = linhas[5];
 
     /* metadados: rótulos em cinza, valores em branco; estoque vazio = badge */
     vazio[0] = '\0';
@@ -703,22 +698,24 @@ static void desenha_menu_fase(const Lista *li, int selecao, int fase)
         ui_badge(UI_NEUTRO, NULL, badge, sizeof badge);
         snprintf(vazio, sizeof vazio, "  %s", badge);
     }
-    snprintf(linhas[6], sizeof linhas[6], "%sTipos%s %s%s%d%s %s%s%s %sPe\xc3\xa7" "as%s %s%s%lld%s%s",
+    snprintf(meta, sizeof meta, "%sTipos%s %s%s%d%s %s%s%s %sPe\xc3\xa7" "as%s %s%s%lld%s%s",
              cinza, rs, bold, sec, tamanho_lista(li), rs,
              cinza, UI_PONTO, rs,
              cinza, rs, bold, sec, total_pecas(li), rs, vazio);
-    ptrs[6] = linhas[6];
+    recuo = (MENU_CONTEUDO - (int)ui_largura(meta)) / 2;
+    snprintf(linhas[5], sizeof linhas[5], "%*s%s", recuo > 0 ? recuo : 0, "", meta);
+    ptrs[5] = linhas[5];
 
     ui_espacar("OhmFlow", titulo, sizeof titulo, UI_LARGURA);
     snprintf(cab, sizeof cab, "%sControle de Estoque %s 8-Bit%s", cinza, UI_PONTO, rs);
-    ui_caixa_centralizada(UI_MOLDURA_ARREDONDADA, UI_COR_BORDA, titulo, cab, ptrs, 7,
-                          UI_LARGURA);
+    ui_caixa_centralizada(UI_MOLDURA_ARREDONDADA, UI_COR_BORDA,
+                          com_banner ? NULL : titulo, cab, ptrs, 6, MENU_LARGURA);
 
     /* Linha de dica centralizada */
     {
         const char *dica =
             "\xe2\x86\x91\xe2\x86\x93\xe2\x86\x90\xe2\x86\x92"
-            "/WASD Navegar \xc2\xb7 [1-9] Acesso r\xc3\xa1pido \xc2\xb7 [Enter] Confirmar"
+            "/WASD Navegar \xc2\xb7 [1-8] Acesso r\xc3\xa1pido \xc2\xb7 [Enter] Confirmar"
             " \xc2\xb7 [Esc/0] Sair";
         int m = (cols - (int)ui_largura(dica)) / 2;
         if (m < 0) m = 0;
@@ -728,11 +725,14 @@ static void desenha_menu_fase(const Lista *li, int selecao, int fase)
 
 void desenha_menu(const Lista *li, int selecao)
 {
-    desenha_menu_fase(li, selecao, 1);
+    desenha_menu_fase(li, selecao, 1, 0);
 }
 
-/* Linhas que o bloco do menu ocupa na tela (caixa + dica) */
-#define MENU_LINHAS 14
+int menu_com_banner(int colunas, int linhas)
+{
+    // cppcheck-suppress knownConditionTrueFalse ; sempre 0 só com -DOHM_ASCII
+    return banner_disponivel(colunas) && linhas >= MENU_ALTURA_COM_BANNER;
+}
 
 /* Duração do quadro intermediário do chevron deslizante */
 #define MENU_ANIMACAO_MS 30
@@ -740,12 +740,23 @@ void desenha_menu(const Lista *li, int selecao)
 /* Um quadro do menu, desenhado por cima do anterior (sem limpar a tela) */
 static void quadro_menu(const Lista *li, int selecao, int fase)
 {
-    int pad, i;
+    int pad, i, altura = MENU_LINHAS;
+    int cols = ui_colunas_terminal(), rows = ui_linhas_terminal();
+    int com_banner = menu_com_banner(cols, rows);
+
     ui_quadro_inicio();
-    /* Centralização vertical: pad linhas em branco acima do menu */
-    pad = (ui_linhas_terminal() - MENU_LINHAS) / 2;
+    /* banner logo acima do card: os dois centralizam como um bloco só */
+    // cppcheck-suppress knownConditionTrueFalse ; sempre 0 só com -DOHM_ASCII
+    if (com_banner) altura += BANNER_LINHAS + 1;
+    /* Centralização vertical: pad linhas em branco acima do bloco */
+    pad = (rows - altura) / 2;
     for (i = 0; i < pad; i++) putchar('\n');
-    desenha_menu_fase(li, selecao, fase);
+    // cppcheck-suppress knownConditionTrueFalse ; sempre 0 só com -DOHM_ASCII
+    if (com_banner) {
+        imprime_banner(cols);
+        putchar('\n');
+    }
+    desenha_menu_fase(li, selecao, fase, com_banner);
     ui_quadro_fim();
 }
 
@@ -1291,17 +1302,7 @@ void tela_reinicializar(Lista *li)
     voltar_ao_menu();
 }
 
-/* ---- [8] diferencial (a definir) --------------------------------------- */
-
-void tela_diferencial(void)
-{
-    abre_tela("Diferencial", ALTURA_DIFERENCIAL);
-    registra(LOG_INFO, "DIFERENCIAL", NULL, "EM BREVE", NULL);
-    ui_caixa_feedback(UI_INFO, "Em breve", "Funcionalidade diferencial em desenvolvimento");
-    voltar_ao_menu();
-}
-
-/* ---- [9] histórico: auxiliares das tabelas -------------------------- */
+/* ---- [8] histórico: auxiliares das tabelas -------------------------- */
 
 /* Copia s em buf com no máximo `largura` colunas visíveis (UTF-8); se cortar,
  * termina com reticências */
@@ -1540,7 +1541,7 @@ static void checkpoint_interativo(Lista *li)
     voltar_ao_menu();
 }
 
-/* ---- [9] histórico ---------------------------------------------------- */
+/* ---- [8] histórico ---------------------------------------------------- */
 
 /* Tabela das `n` últimas ações lidas dos logs, a mais recente em cima */
 static void tabela_log(const LogEntrada *v, int n)

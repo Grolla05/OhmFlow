@@ -34,20 +34,22 @@ Ao abrir, aparece a **tela de boas-vindas** com o logo "OhmFlow" em laranja e a 
 
 ## 3. O menu principal
 
-A Figura 1 mostra o menu. A opção selecionada aparece em laranja e negrito; as outras, em branco. Embaixo, o menu mostra quantos **tipos** de resistor estão cadastrados e quantas **peças** há no total.
+A Figura 1 mostra o menu. A opção selecionada aparece em laranja e negrito; as outras, em branco. O programa abre em tela cheia, com a arte do OhmFlow logo acima do menu, ambos centralizados. Embaixo, o menu mostra quantos **tipos** de resistor estão cadastrados e quantas **peças** há no total.
 
 ```text
-╭─  OhmFlow System  ───────────────────╮
-│      Controle de Estoque 8-Bit       │
-├──────────────────────────────────────┤
-│  ● [1] Novo         ● [5] Retirar    │
-│  ● [2] Remover      ● [6] Repor      │
-│  ● [3] Listar       ● [7] Reinicializar
-│  ● [4] Consultar    ● [8] (diferencial)
-│  ● [9] Histórico                     │
-│  Tipos: 3    │ Peças: 20             │
-╰──────────────────────────────────────╯
- ↑↓←→/WASD Navegar · [1-9] Acesso rápido · [Enter] Confirmar · [Esc/0] Sair
+╭────────────────────────────────────────────╮
+│        Controle de Estoque · 8-Bit         │
+├────────────────────────────────────────────┤
+│                                            │
+│   › [1] Novo         [5] Retirar           │
+│     [2] Remover      [6] Repor             │
+│     [3] Listar       [7] Reinicializar     │
+│     [4] Consultar    [8] Histórico         │
+│                                            │
+│             Tipos 3 · Peças 20             │
+│                                            │
+╰────────────────────────────────────────────╯
+ ↑↓←→/WASD Navegar · [1-8] Acesso rápido · [Enter] Confirmar · [Esc/0] Sair
 ```
 
 **Figura 1 — Menu principal (a caixa se alarga para caber o texto mais longo)**
@@ -133,7 +135,7 @@ Se o valor já estiver cadastrado, o programa avisa *"4,7 kΩ já cadastrado - u
 └──────────────────────────────────────┘
 ```
 
-Um lote inteiro conta como **uma única ação** no desfazer (ver [9] Histórico).
+Um lote inteiro conta como **uma única ação** no desfazer (ver [8] Histórico).
 
 ### [2] Remover — apagar um tipo
 
@@ -182,13 +184,9 @@ Igual ao Retirar, mas soma: *"220 Ω: 50 → 60 unidades"*. Funciona também em 
 
 Se houver resistores, o programa mostra um aviso em amarelo (*"Tem certeza disso, você está apagando sua base de dados."*) e pergunta *"Apagar TODOS os 3 tipos (68 peças)? (s/n)"*. Com `s`, a lista fica vazia. Se a lista já estiver vazia, só confirma que está pronta para uso.
 
-> Arrependeu? Enquanto o programa estiver aberto, dá para desfazer pelo **[9] Histórico**.
+> Arrependeu? Enquanto o programa estiver aberto, dá para desfazer pelo **[8] Histórico**.
 
-### [8] Diferencial
-
-Ainda em desenvolvimento: mostra *"Em breve"*.
-
-### [9] Histórico — o que aconteceu e voltar no tempo
+### [8] Histórico — o que aconteceu e voltar no tempo
 
 A tela tem duas partes.
 
@@ -211,11 +209,11 @@ A tela tem duas partes.
 - `Enter` leva o estoque até aquele ponto. Ir para o ponto **2** no exemplo desfaz o Reinicializar e traz os 3 tipos de volta.
 - Ações desfeitas aparecem em cinza ("desfeita") e podem ser **refeitas** escolhendo um ponto acima.
 - `Esc` volta sem mudar nada.
-- O ponto **0** é o estoque como estava ao abrir o programa (vazio).
+- O ponto **0** é o estoque como estava ao abrir o programa.
 
 > **Atenção:** se você desfizer ações e depois fizer uma ação **nova**, as ações desfeitas são descartadas (não dá mais para refazê-las). É o mesmo comportamento do "Ctrl+Z / Ctrl+Y" de editores de texto.
 
-O desfazer vale **só para a sessão atual**. Ao fechar o programa, a linha do tempo é perdida (o log em arquivo continua).
+O desfazer vale **só para a sessão atual**. Ao sair pelo menu, o estoque é salvo e a linha do tempo é perdida (o log em arquivo continua). Na próxima abertura, o estoque volta como foi salvo.
 
 ### Sair
 

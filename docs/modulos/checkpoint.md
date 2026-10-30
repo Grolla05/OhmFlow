@@ -141,7 +141,7 @@ O mesmo vale em `move_topo` quando a lista já mudou mas a operação não pôde
 | Inversas pela API pública | O checkpoint não pode quebrar a ordem nem os totais da lista | Mexer nos nós diretamente |
 | Registrar só no ramo `LISTA_OK` | A pilha nunca contém algo que não aconteceu | Registrar antes e corrigir depois |
 | Lote de inserção = 1 ação | Para quem usa, foi "um cadastro"; desfazer item a item seria confuso | Uma ação por item |
-| Só a sessão atual | O estoque não é salvo em disco; um histórico persistente não teria estoque para aplicar | Ler o log (que guarda valores já formatados, não os `double` exatos) |
+| Só a sessão atual | O banco guarda o estado do estoque, não as operações; desfazer depois de reabrir exigiria persistir as pilhas | Ler o log (que guarda valores já formatados, não os `double` exatos) |
 
 ## 9. Testes
 

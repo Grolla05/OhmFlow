@@ -3,8 +3,9 @@
  *
  * Adaptação da Lista Dinâmica (encadeada) vista em aula: cada nó guarda um
  * Resistor e a lista é mantida SEMPRE em ordem crescente de resistência (Ω).
- * "Lista" é um nó descritor (opaco): guarda o início da lista e os totais
- * (tipos e peças), para que tamanho e total de peças saiam em O(1).
+ * "Lista" é um nó descritor (opaco): guarda o início da lista, os totais
+ * (tipos e peças), para que tamanho e total de peças saiam em O(1), e um vetor
+ * de ponteiros para os nós, que dá à busca binária acesso direto ao meio.
  */
 #ifndef LISTA_H
 #define LISTA_H
@@ -47,8 +48,9 @@ int    repor_estoque(Lista *li, double ohms, int qtd);
 /* Chama f(resistor, ctx) para cada nó, em ordem crescente */
 void   percorre_lista(const Lista *li, void (*f)(const Resistor *r, void *ctx), void *ctx);
 
-/* Nós examinados pela última busca (consulta, retirada, reposição, inserção
- * ou remoção); mostra a parada antecipada da lista ordenada. 0 se li é NULL */
+/* Nós examinados pela última busca binária (consulta, retirada, reposição,
+ * inserção ou remoção): no máximo log2(n + 1) arredondado para cima. 0 se li
+ * é NULL */
 int    lista_passos(const Lista *li);
 
 /* 1 se a e b representam a mesma resistência (tolerância relativa 1e-9) */

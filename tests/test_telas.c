@@ -20,18 +20,11 @@ static void teste_navegar_baixo_simples(void)
     ASSERT_EQ_INT(8, navegar_menu(7, KEY_DOWN));
 }
 
-static void teste_navegar_baixo_para_sair(void)
+static void teste_navegar_baixo_da_a_volta(void)
 {
-    /* últimas linhas de cada coluna descem para o Histórico */
-    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(4, KEY_DOWN));
-    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(8, KEY_DOWN));
-}
-
-static void teste_navegar_baixo_de_sair(void)
-{
-    /* do Histórico volta ao topo da coluna */
-    int r = navegar_menu(OPCAO_HISTORICO, KEY_DOWN);
-    ASSERT_TRUE(r == 1 || r == 5); /* col preservada; col padrão = 0 → 1 */
+    /* última linha de cada coluna volta ao topo da mesma coluna */
+    ASSERT_EQ_INT(1, navegar_menu(4, KEY_DOWN));
+    ASSERT_EQ_INT(5, navegar_menu(OPCAO_HISTORICO, KEY_DOWN));
 }
 
 static void teste_navegar_cima_simples(void)
@@ -44,18 +37,11 @@ static void teste_navegar_cima_simples(void)
     ASSERT_EQ_INT(7, navegar_menu(8, KEY_UP));
 }
 
-static void teste_navegar_cima_para_sair(void)
+static void teste_navegar_cima_da_a_volta(void)
 {
-    /* topo de cada coluna sobe para o Histórico */
-    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(1, KEY_UP));
+    /* topo de cada coluna vai para o fim da mesma coluna */
+    ASSERT_EQ_INT(4, navegar_menu(1, KEY_UP));
     ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(5, KEY_UP));
-}
-
-static void teste_navegar_cima_de_sair(void)
-{
-    /* do Histórico volta ao fundo da coluna (linha 3 = opções 4 ou 8) */
-    int r = navegar_menu(OPCAO_HISTORICO, KEY_UP);
-    ASSERT_TRUE(r == 4 || r == 8);
 }
 
 /* ---- navegar_menu: navegação horizontal ---------------------------------- */
@@ -84,13 +70,6 @@ static void teste_navegar_sem_mover_na_borda(void)
     /* col 1 não vai mais para direita */
     ASSERT_EQ_INT(5, navegar_menu(5, KEY_RIGHT));
     ASSERT_EQ_INT(8, navegar_menu(8, KEY_RIGHT));
-}
-
-static void teste_navegar_horizontal_de_sair(void)
-{
-    /* Histórico não se move para esquerda/direita */
-    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(OPCAO_HISTORICO, KEY_LEFT));
-    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(OPCAO_HISTORICO, KEY_RIGHT));
 }
 
 /* ---- navegar_menu: teclas irrelevantes ----------------------------------- */
@@ -182,17 +161,19 @@ static void teste_menu_esc_sai(void)
     ASSERT_EQ_INT(MENU_CONTINUA, menu_tecla_opcao('x', 2));
 }
 
-static void teste_historico_opcao_9(void)
+static void teste_historico_opcao_8(void)
 {
-    /* [9] Histórico na linha de baixo (onde ficava o "[0] Sair"); a tecla 0
-     * continua saindo, igual ao Esc */
-    ASSERT_EQ_INT(9, OPCAO_HISTORICO);
-    ASSERT_EQ_INT(OPCAO_HISTORICO, menu_tecla_opcao('9', 2));
+    /* [8] Histórico fecha a coluna direita; a tecla 9 não faz mais nada e a
+     * tecla 0 continua saindo, igual ao Esc */
+    ASSERT_EQ_INT(8, OPCAO_HISTORICO);
+    ASSERT_EQ_INT(9, OPCAO_TOTAL);
+    ASSERT_EQ_INT(OPCAO_HISTORICO, menu_tecla_opcao('8', 2));
+    ASSERT_EQ_INT(MENU_CONTINUA, menu_tecla_opcao('9', 2));
     ASSERT_EQ_INT(OPCAO_SAIR, menu_tecla_opcao('0', 3));
     ASSERT_EQ_INT(OPCAO_SAIR, menu_tecla_opcao('0', OPCAO_HISTORICO));
     ASSERT_EQ_INT(OPCAO_HISTORICO, menu_tecla_opcao('\r', OPCAO_HISTORICO));
     ASSERT_EQ_INT(OPCAO_HISTORICO, menu_tecla_opcao('\n', OPCAO_HISTORICO));
-    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(4, KEY_DOWN));
+    ASSERT_EQ_INT(OPCAO_HISTORICO, navegar_menu(4, KEY_RIGHT));
     ASSERT_EQ_INT(OPCAO_LISTAR, menu_tecla_opcao('3', OPCAO_HISTORICO));
     ASSERT_TRUE(OPCAO_SAIR < 0 || OPCAO_SAIR >= OPCAO_TOTAL);
     ASSERT_TRUE(OPCAO_SAIR != MENU_CONTINUA);
@@ -400,7 +381,20 @@ static void teste_tela_historico_mostra_acoes(void)
     ASSERT_TRUE(strstr(buf, "CONSULTAR") < strstr(buf, "RETIRAR"));
 }
 
-static void teste_menu_mostra_historico_9(void)
+/* O banner só entra no menu se couber em largura e em altura */
+static void teste_menu_com_banner(void)
+{
+#ifdef OHM_ASCII
+    ASSERT_EQ_INT(0, menu_com_banner(200, 60));
+#else
+    ASSERT_EQ_INT(1, menu_com_banner(BANNER_COLUNAS + 2, 40));
+    ASSERT_EQ_INT(0, menu_com_banner(BANNER_COLUNAS + 1, 40));
+    ASSERT_EQ_INT(1, menu_com_banner(120, MENU_ALTURA_COM_BANNER));
+    ASSERT_EQ_INT(0, menu_com_banner(120, MENU_ALTURA_COM_BANNER - 1));
+#endif
+}
+
+static void teste_menu_mostra_historico_8(void)
 {
     char buf[16384];
     FILE *f = abre_temp();
@@ -419,7 +413,9 @@ static void teste_menu_mostra_historico_9(void)
     fclose(f);
     libera_lista(li);
 
-    ASSERT_TRUE(strstr(buf, "[9] Hist\xC3\xB3rico") != NULL);
+    ASSERT_TRUE(strstr(buf, "[8] Hist\xC3\xB3rico") != NULL);
+    ASSERT_TRUE(strstr(buf, "[9]") == NULL);
+    ASSERT_TRUE(strstr(buf, "diferencial") == NULL);
     ASSERT_TRUE(strstr(buf, "[0]") == NULL);  /* "[0] Sair" saiu da caixa */
     ASSERT_TRUE(strstr(buf, "Sair") == NULL); /* sair agora é Esc ou 0 */
 }
@@ -684,15 +680,12 @@ int main(void)
     printf("=== test_telas ===\n");
 
     RUN_TEST(teste_navegar_baixo_simples);
-    RUN_TEST(teste_navegar_baixo_para_sair);
-    RUN_TEST(teste_navegar_baixo_de_sair);
+    RUN_TEST(teste_navegar_baixo_da_a_volta);
     RUN_TEST(teste_navegar_cima_simples);
-    RUN_TEST(teste_navegar_cima_para_sair);
-    RUN_TEST(teste_navegar_cima_de_sair);
+    RUN_TEST(teste_navegar_cima_da_a_volta);
     RUN_TEST(teste_navegar_direita);
     RUN_TEST(teste_navegar_esquerda);
     RUN_TEST(teste_navegar_sem_mover_na_borda);
-    RUN_TEST(teste_navegar_horizontal_de_sair);
     RUN_TEST(teste_navegar_tecla_ignorada);
     RUN_TEST(teste_tecla_comum);
     RUN_TEST(teste_tecla_setas);
@@ -700,8 +693,9 @@ int main(void)
     RUN_TEST(teste_tecla_esc_isolado_nao_trava);
     RUN_TEST(teste_tecla_esc_sequencia_desconhecida);
     RUN_TEST(teste_menu_esc_sai);
-    RUN_TEST(teste_historico_opcao_9);
-    RUN_TEST(teste_menu_mostra_historico_9);
+    RUN_TEST(teste_historico_opcao_8);
+    RUN_TEST(teste_menu_mostra_historico_8);
+    RUN_TEST(teste_menu_com_banner);
     RUN_TEST(teste_tela_historico_mostra_acoes);
     RUN_TEST(teste_navegar_ignora_teclas_especiais);
     RUN_TEST(teste_menu_cor_laranja_na_borda);

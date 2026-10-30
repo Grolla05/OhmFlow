@@ -44,7 +44,7 @@ flowchart LR
 
 | Decisão | Motivo |
 | --- | --- |
-| Sair é tecla, não item do menu | Libera espaço para o `[9] Histórico`; `Esc` é o gesto universal de "sair" |
+| Sair é tecla, não item do menu | Libera espaço para o `[8] Histórico`; `Esc` é o gesto universal de "sair" |
 | Sem confirmação | Sair não apaga nada que pudesse ser salvo; confirmar seria só um passo a mais |
 | Liberar tudo explicitamente | Requisito do enunciado e boa prática: cada `malloc` com seu `free` |
 | Fim da entrada = sair | Evita laço infinito quando a entrada acaba (testes, terminal fechado) |

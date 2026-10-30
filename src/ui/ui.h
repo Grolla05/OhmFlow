@@ -96,6 +96,22 @@ void ui_bufferizar_saida(void);
  * uma nova; sem terminal não faz nada */
 void ui_descartar_entrada(void);
 
+/* Onde o programa está rodando, para decidir como entrar em tela cheia */
+enum { UI_TERM_OUTRO = 0, UI_TERM_CONHOST, UI_TERM_WINDOWS_TERMINAL };
+
+/* Classifica o terminal a partir da classe da janela do console e das
+ * variáveis WT_SESSION e TERM_PROGRAM (NULL = ausente). O Windows Terminal
+ * aberto por duplo clique não define WT_SESSION, mas a janela do console é a
+ * "PseudoConsoleWindow"; o terminal do VS Code também, por isso vem antes */
+int ui_tipo_terminal(const char *classe_janela, const char *wt_session,
+                     const char *term_program);
+
+/* Põe a janela em tela cheia e espera o terminal assumir o novo tamanho. Só
+ * age em terminal interativo; ui_sair_tela_cheia desfaz, e apenas o que
+ * ui_tela_cheia tiver ativado */
+void ui_tela_cheia(void);
+void ui_sair_tela_cheia(void);
+
 /* Quadros redesenhados sem limpar a tela (menus navegados por setas):
  * ui_quadro_inicio leva o cursor ao topo e o desenho seguinte sobrescreve o
  * anterior; ui_quadro_fim apaga o que sobrou abaixo e envia tudo de uma vez.

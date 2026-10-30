@@ -126,7 +126,7 @@ No Windows, `ui_limpar_tela` preenche **todo o buffer** do console com espaços 
 | Grupo | Funções |
 | --- | --- |
 | Estado | `ui_init`, `ui_definir_saida`, `ui_definir_cor`, `ui_cor_ativa`, `ui_interativo`, `ui_definir_interativo`, `ui_cor` |
-| Tela | `ui_limpar_tela`, `ui_pausar`, `ui_esperar_enter`, `ui_espera_enter_de`, `ui_colunas_terminal`, `ui_linhas_terminal`, `ui_cursor` (mostra/esconde o cursor) |
+| Tela | `ui_limpar_tela`, `ui_pausar`, `ui_esperar_enter`, `ui_espera_enter_de`, `ui_colunas_terminal`, `ui_linhas_terminal`, `ui_cursor` (mostra/esconde o cursor), `ui_tela_cheia`, `ui_sair_tela_cheia`, `ui_tipo_terminal` ([D19](../08-decisoes-de-projeto.md#d19--tela-cheia-ao-abrir)) |
 | Centralização | `ui_definir_centralizado`, `ui_centralizado`, `ui_margem` (recuo do bloco central), `ui_espaco_vertical` |
 | Caixas | `ui_caixa`, `ui_caixa_centralizada` (sempre centraliza pela própria largura; o menu usa), `ui_caixa_feedback` |
 | Mensagens | `ui_mensagem`, `ui_dica` |

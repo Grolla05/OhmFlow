@@ -1,0 +1,8 @@
+Estoque atual
+10 kΩ
+22 kΩ
+33 kΩ
+3 tipos · 15 peças
+
+Obrigado por usar o OhmFlow
+Estoque final: 3 tipos · 15 peças

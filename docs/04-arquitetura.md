@@ -17,6 +17,7 @@ OhmFlow/
 │   ├── formatacao.h / .c         texto "4k7" <-> 4700 Ω <-> "4,7 kΩ"
 │   ├── resistor.h / .c           código de cores de 4 faixas e desenho do resistor
 │   ├── log.h / log.c             registro das ações em arquivo
+│   ├── persistencia.h / .c       carga e salvamento do estoque em SQLite
 │   ├── main.c                    ponto de entrada: monta, roda e desmonta
 │   ├── ui/
 │   │   ├── ui.h / ui.c           primitivas de terminal (cores, caixas, tabelas, entrada)
@@ -208,6 +209,7 @@ A Tabela 3 mostra as funções públicas mais usadas. A referência completa de 
 | [checkpoint](modulos/checkpoint.md) | `cria_checkpoint`, `libera_checkpoint`, `ck_registra_*`, `ck_descarta`, `ck_desfazer`, `ck_refazer`, `ck_ir_para`, `ck_posicao`, `ck_total`, `ck_operacao` |
 | [formatacao](modulos/formatacao.md) | `parse_resistencia`, `formata_resistencia`, `grandeza_resistencia` |
 | [resistor](modulos/resistor.md) | `codigo_cores`, `nome_cor_faixa`, `resistor_rgb_faixa`, `resistor_arte` |
+| [persistencia](modulos/persistencia.md) | `persistencia_caminho`, `persistencia_carregar`, `persistencia_salvar` |
 | [log](modulos/log.md) | `log_iniciar`, `log_encerrar`, `log_acao`, `log_ultimas`, `log_parse_linha`, `log_formata_linha` |
 | [ui](modulos/ui.md) | `ui_init`, `ui_caixa`, `ui_caixa_feedback`, `ui_mensagem`, `ui_dica`, `ui_ler_linha`, `ui_confirmar`, `ui_tabela_*` |
 | [telas](modulos/telas.md) | `tela_*`, `navegar_menu`, `menu_tecla_opcao`, `decodifica_tecla`, `parse_item`, `checkpoint_navegar`, `telas_definir_checkpoint`, `telas_definir_resistor` |

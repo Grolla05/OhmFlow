@@ -51,17 +51,17 @@ Exemplos reais do histórico: `feat(historico): checkpoint com desfazer/refazer 
 
 ## 4. Roteiro: adicionar uma funcionalidade nova
 
-Exemplo concreto: implementar o **[8] Diferencial** como "resistor mais próximo".
+Exemplo concreto: uma opção nova de "resistor mais próximo".
 
 1. **Regra de negócio** — em `lista.h`/`lista.c`, uma função pública nova, por exemplo `vizinhos_lista(const Lista*, double alvo, Resistor *menor, Resistor *maior)`, usando `localiza`. Sem `printf`.
 2. **Testes da regra** — em `tests/test_lista.c` (ou suíte nova `tests/test_<nome>.c`): lista vazia, alvo menor que todos, maior que todos, exato, vizinho com quantidade 0.
 3. **Suíte nova?** Acrescente o nome em `TESTES` no `Makefile`; se criar um `.c` em `src/`, acrescente-o em `SRC_LIB`.
-4. **Tela** — em `telas.c`, substitua o conteúdo de `tela_diferencial` seguindo o [padrão comum](modulos/telas.md#4-padrão-comum-de-uma-tela): `abre_tela`, dicas, `ler_resistencia`, chamada à lista, `registra(...)` no log, `ui_caixa_feedback`, `voltar_ao_menu`.
-5. **Rótulo do menu** — troque `"(diferencial)"` em `desenha_menu`.
+4. **Tela** — em `telas.c`, crie a `tela_*` nova seguindo o [padrão comum](modulos/telas.md#4-padrão-comum-de-uma-tela): `abre_tela`, dicas, `ler_resistencia`, chamada à lista, `registra(...)` no log, `ui_caixa_feedback`, `voltar_ao_menu`.
+5. **Menu** — acrescente a opção ao enum em `telas.h`, o rótulo em `desenha_menu_fase`, a linha na grade de `navegar_menu` e o `case` em `main.c`.
 6. **Desfazer** — se a feature **muda o estoque**, registre no checkpoint só no ramo `LISTA_OK` (crie um `OP_*` novo e a inversa em `aplica`, com testes em `test_checkpoint.c`).
 7. **e2e** — acrescente o roteiro em `tests/e2e/entrada.txt` e as linhas esperadas em `tests/e2e/esperado.txt`.
 8. **Validar** — `make clean; make EXTRA_CFLAGS=-Werror all test e2e cppcheck`.
-9. **Documentar** — atualize [funcionalidades/08-diferencial.md](funcionalidades/08-diferencial.md), o módulo de código afetado em [modulos/](modulos/README.md), o `README.md` e o `CHANGES.md`.
+9. **Documentar** — crie o documento em [funcionalidades/](funcionalidades/README.md) e atualize o módulo de código afetado em [modulos/](modulos/README.md), o `README.md` e o `CHANGES.md`.
 
 ## 5. Checklist antes do pull request
 

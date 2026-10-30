@@ -45,7 +45,7 @@ C:\msys64\usr\bin\bash.exe -lc "pacman -Syu --noconfirm"
 **3. Ferramentas:**
 
 ```powershell
-C:\msys64\usr\bin\bash.exe -lc "pacman -S --needed --noconfirm git make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cppcheck"
+C:\msys64\usr\bin\bash.exe -lc "pacman -S --needed --noconfirm git make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-cppcheck mingw-w64-ucrt-x86_64-sqlite3"
 ```
 
 **4. PATH** — acrescenta as pastas no **fim** do PATH do usuário (assim `find`, `sort` do Windows continuam valendo). Depois, **abra um PowerShell novo**:

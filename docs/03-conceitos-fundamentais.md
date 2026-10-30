@@ -60,7 +60,7 @@ Um **ponteiro** é uma variável que guarda **o endereço de outra gaveta**, e n
 - `no->dados` — "vá até o elemento apontado por `no` e pegue o campo `dados`".
 - `NULL` — um endereço especial que significa "não aponta para nada" (o fim da fila).
 
-**Ponteiro para ponteiro** (`Elem **pp`) é um papel com o endereço de *outro papel*. Parece estranho, mas é o truque que deixa a inserção e a remoção do OhmFlow tão curtas: em vez de lembrar "qual vagão vem antes", guarda-se o endereço do **engate** que precisa ser trocado. Ver [modulos/lista.md](modulos/lista.md#3-o-coração-localiza).
+**Ponteiro para ponteiro** (`Elem **`) é um papel com o endereço de *outro papel*. No OhmFlow, `Elem **indice` é um vetor de endereços de nós, a peça que permite a busca binária. Ver [modulos/lista.md](modulos/lista.md#3-o-coração-localiza).
 
 ## 5. Memória dinâmica: `malloc` e `free`
 
@@ -155,9 +155,10 @@ A notação **O(...)** ("ó grande") descreve como o trabalho cresce quando os d
 | Notação | Leitura | Exemplo no OhmFlow |
 | --- | --- | --- |
 | **O(1)** | Trabalho constante, não importa o tamanho | Saber o total de peças (lê o descritor); empilhar uma ação |
-| **O(n)** | Trabalho proporcional ao tamanho | Procurar um resistor (no pior caso percorre todos); listar |
+| **O(log n)** | Dobrar os dados custa só um passo a mais | Procurar um resistor (busca binária) |
+| **O(n)** | Trabalho proporcional ao tamanho | Listar; abrir ou fechar uma posição no vetor ao inserir ou remover |
 
-A lista ordenada não muda a ordem de grandeza da busca (continua O(n)), mas **reduz o trabalho na prática**: procurar um valor menor que todos para no primeiro nó. O programa conta esses passos em `lista_passos`.
+A ordenação é o que permite a **busca binária**: olhando o termo do meio, sabe-se que à esquerda as resistências diminuem e à direita aumentam, e metade dos candidatos é descartada a cada passo. Com 1.000 tipos, são no máximo 10 passos em vez de até 1.000. Como nó encadeado não tem acesso direto ao meio, a lista mantém um vetor de ponteiros para os nós. O programa conta esses passos em `lista_passos`.
 
 ## 12. Números com vírgula no computador (ponto flutuante)
 
