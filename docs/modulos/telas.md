@@ -5,7 +5,7 @@
 **Arquivos:** [src/ui/telas.h](../../src/ui/telas.h) · [src/ui/telas.c](../../src/ui/telas.c)
 **Testes:** [tests/test_telas.c](../../tests/test_telas.c) · [tests/test_novo.c](../../tests/test_novo.c)
 
-> **Resumo:** implementa cada tela do programa (boas-vindas, menu, as funções 1 a 9 e o encerramento). Cada tela pergunta, valida, chama a regra de negócio ([Lista](lista.md), [Checkpoint](checkpoint.md)), registra no [Log](log.md) e mostra o resultado com as peças da [UI](ui.md).
+> **Resumo:** implementa cada tela do programa (boas-vindas, menu, as funções 1 a 8 e o encerramento). Cada tela pergunta, valida, chama a regra de negócio ([Lista](lista.md), [Checkpoint](checkpoint.md)), registra no [Log](log.md) e mostra o resultado com as peças da [UI](ui.md).
 
 > O comportamento **de cada funcionalidade**, do ponto de vista do usuário até o código, está detalhado em [docs/funcionalidades/](../funcionalidades/README.md). Este documento cobre o que é comum a todas as telas.
 
@@ -35,7 +35,7 @@ stateDiagram-v2
 
 ```c
 enum { OPCAO_INSERIR = 1, OPCAO_REMOVER, OPCAO_LISTAR, OPCAO_CONSULTAR,
-       OPCAO_RETIRAR, OPCAO_REPOR, OPCAO_REINICIALIZAR, OPCAO_DIFERENCIAL,
+       OPCAO_RETIRAR, OPCAO_REPOR, OPCAO_REINICIALIZAR,
        OPCAO_HISTORICO, OPCAO_TOTAL };
 #define OPCAO_SAIR (-2)   /* não é item do menu */
 ```
@@ -52,7 +52,6 @@ enum { OPCAO_INSERIR = 1, OPCAO_REMOVER, OPCAO_LISTAR, OPCAO_CONSULTAR,
 | 5 | `tela_retirar` | [Retirar](../funcionalidades/05-retirar.md) |
 | 6 | `tela_repor` | [Repor](../funcionalidades/06-repor.md) |
 | 7 | `tela_reinicializar` | [Reinicializar](../funcionalidades/07-reinicializar.md) |
-| 8 | `tela_diferencial` | [Diferencial](../funcionalidades/08-diferencial.md) |
 | 9 | `tela_historico` | [Histórico](../funcionalidades/09-historico.md) e [Desfazer/refazer](../funcionalidades/10-desfazer-refazer.md) |
 | Esc/0 | `tela_encerramento` | [Sair](../funcionalidades/13-sair.md) |
 | dentro do 1 | `abre_tela_novo`, `colore_resistor`, `mostra_resistor` | [Resistor colorido](../funcionalidades/14-resistor-colorido.md) |

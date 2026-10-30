@@ -10,13 +10,13 @@
 
 - **Contexto:** o enunciado exige uma Lista Dinâmica Ordenada adaptada da desordenada vista em aula.
 - **Decisão:** lista simplesmente encadeada, inserção já na posição certa, chave = resistência.
-- **Alternativas:** vetor ordenado (busca binária O(log n), mas inserção desloca elementos); árvore de busca (fora do escopo).
-- **Consequências:** busca O(n) com parada antecipada; listagem sem ordenação; inserção/remoção trocam só ponteiros.
+- **Alternativas:** vetor ordenado puro (deixaria de ser lista dinâmica); árvore de busca (fora do escopo).
+- **Consequências:** listagem sem ordenação; a busca é binária graças ao vetor de ponteiros da [D4](#d4--busca-binária-com-vetor-de-ponteiros).
 
 ## D2 — Nó descritor com totais
 
 - **Contexto:** o menu mostra tipos e peças e é redesenhado a cada tecla.
-- **Decisão:** um struct descritor com `inicio`, `tipos`, `pecas` e `passos`, atualizado a cada operação.
+- **Decisão:** um struct descritor com `inicio`, `indice`, `capacidade`, `tipos`, `pecas` e `passos`, atualizado a cada operação.
 - **Alternativa:** recontar a lista a cada desenho (O(n) por tecla).
 - **Consequências:** totais em O(1); toda operação precisa manter os contadores (garantido por `teste_contadores_invariantes`).
 
@@ -26,11 +26,12 @@
 - **Por quê:** ninguém fora do módulo consegue quebrar a ordenação, os totais ou a posse da memória.
 - **Custo:** acesso só por funções (inclusive `percorre_lista` com callback para listar).
 
-## D4 — Ponteiro para ponteiro em `localiza`
+## D4 — Busca binária com vetor de ponteiros
 
-- **Decisão:** a busca devolve o endereço do ponteiro que aponta para o nó (`Elem **`).
-- **Alternativa:** o par `ant`/`atual` da aula, com caso especial para o início.
-- **Consequências:** inserir e remover em qualquer posição com as mesmas duas linhas; menos ramos, menos bugs. É uma técnica clássica, boa para explicar no relatório.
+- **Contexto:** comparar termo a termo ignora que a lista está sempre ordenada, mas nó encadeado não tem acesso direto ao meio.
+- **Decisão:** manter os nós encadeados e acrescentar ao descritor `indice`, um vetor dinâmico com o endereço de cada nó em ordem. `localiza` faz a busca binária nele e devolve a posição do nó ou o ponto de inserção.
+- **Alternativas:** vetor puro de `Resistor` (deixa de ser lista dinâmica); busca binária andando pelos nós (menos comparações, mas O(n) passos até cada meio, sem ganho real). Substituiu o ponteiro para ponteiro usado antes em `localiza`.
+- **Consequências:** toda busca custa O(log n); inserir e remover ainda pagam O(n) para deslocar o vetor; a lista tem duas representações que precisam andar juntas, o que os testes de ordem e remoção conferem.
 
 ## D5 — Resistência em `double`, em ohms, com chave canônica
 
@@ -44,11 +45,12 @@
 - **Decisão:** `lista`, `pilha`, `checkpoint` e `formatacao` não imprimem; devolvem códigos. `telas` traduz para mensagens.
 - **Consequências:** módulos testáveis isoladamente; interface trocável; relatório mais claro.
 
-## D7 — Estoque só em memória (sem persistência)
+## D7 — Persistência em SQLite só ao abrir e ao sair
 
-- **Contexto:** o enunciado pede a lista dinâmica; não pede arquivos.
-- **Decisão:** o estoque vive na RAM e é liberado ao sair.
-- **Consequências:** ao reabrir, o estoque está vazio. O desfazer vale só para a sessão. Salvar/carregar em arquivo é candidato a [diferencial](funcionalidades/08-diferencial.md) (ver [refs/BRAINSTORM.md](../refs/BRAINSTORM.md), inclusive a ideia futura de SQLite).
+- **Contexto:** um controle de estoque que esquece tudo ao fechar não serve para uso real. O enunciado pede um item diferencial, e a persistência faz parte dele.
+- **Decisão:** a lista continua sendo a estrutura de trabalho; o banco ([database/](../database/README.md)) é lido uma vez ao abrir e regravado por inteiro, numa transação, ao sair. SQLite ligado de forma estática, schema embutido a partir de `database/database.sql`.
+- **Alternativas:** gravar a cada operação (mais acessos ao disco, foi descartado de propósito); arquivo próprio (exigiria formato e parser).
+- **Consequências:** o menu nunca espera por disco; `Ctrl+C`, fechar a janela ou queda de energia perdem a sessão; banco ilegível desliga o salvamento para não apagar os dados. O desfazer continua valendo só para a sessão.
 
 ## D8 — Desfazer com duas pilhas de operações
 
@@ -94,16 +96,28 @@
 - **Decisão:** nomes de funções, comentários, mensagens, commits e documentação em pt-BR.
 - **Por quê:** projeto acadêmico de turma brasileira; o código serve de material de estudo.
 
-## D16 — Sair como tecla, Histórico como item 9
+## D16 — Sair como tecla, Histórico como item 8
 
-- **Decisão:** `Esc`/`0` saem a qualquer momento do menu; a linha de baixo do menu, antes "[0] Sair", virou `[9] Histórico`.
+- **Decisão:** `Esc`/`0` saem a qualquer momento do menu. O Histórico ocupa a posição `[8]`, liberada com a remoção do placeholder do diferencial, e o menu virou uma grade 4×2 sem linha extra.
 - **Por quê:** acesso direto ao histórico sem aumentar o menu; `Esc` é o gesto universal de sair.
 
 ## D17 — Código de cores dentro do Novo, desenho só no terminal com cores
 
 - **Contexto:** o código de cores era uma das ideias de diferencial; ele faz mais sentido no momento do cadastro, com o componente na mão.
 - **Decisão:** módulo `resistor` separado (lógica pura testável) e desenho em pixel-art de meio-blocos com cor de 24 bits na caixa da tela Novo; desligado sem terminal, sem cores ou com `-DOHM_ASCII`; modo forçável (`telas_definir_resistor`) para os testes.
-- **Consequências:** o e2e e os testes de texto não mudam; a opção `[8]` continua livre para outro diferencial.
+- **Consequências:** o e2e e os testes de texto não mudam.
+
+## D18 — Diferencial do grupo fora do menu
+
+- **Contexto:** o enunciado pede um item diferencial; a opção `[8]` era um placeholder "Em breve".
+- **Decisão:** remover o placeholder. O diferencial do grupo é o conjunto de persistência em SQLite, checkpoint com desfazer/refazer e busca binária.
+- **Consequências:** o enunciado fala em "item no Menu"; o Histórico (`[8]`), que dá acesso ao checkpoint, cumpre esse papel.
+
+## D19 — Tela cheia ao abrir
+
+- **Decisão:** no conhost, `SetConsoleDisplayMode`; no Windows Terminal, um F11 sintético, enviado só se a janela em foco for mesmo dele e ainda não cobrir o monitor (F11 alterna). Ao sair, desfaz apenas o que o programa ativou.
+- **Alternativa:** só maximizar (mantém barra de título e de tarefas).
+- **Consequências:** nada muda sem terminal interativo; terminais de editores não são tocados; `Ctrl+C` encerra sem desfazer a tela cheia.
 
 ---
 

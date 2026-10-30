@@ -18,3 +18,6 @@ GEMINI.md
 .claude/
 # Logs gerados ao rodar o programa (make run)
 logs/
+# Banco local do estoque (o schema database/database.sql é versionado)
+database/*.db
+database/*.db-*

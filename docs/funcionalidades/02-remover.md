@@ -45,7 +45,7 @@ Para **corrigir um valor cadastrado errado**, remova e cadastre de novo: a chave
 
 1. `ler_cadastrado` lê a resistência e chama `consulta_lista` para saber se existe e quantas unidades tem (para a pergunta de confirmação).
 2. `ui_confirmar` pergunta.
-3. `remove_lista` usa `localiza` para obter o **endereço do ponteiro** que aponta para o nó e faz `*pp = no->prox; free(no);`. A mesma linha serve para o primeiro, um do meio ou o último nó (ver [modulos/lista.md](../modulos/lista.md#52-remover)).
+3. `remove_lista` usa `localiza` para obter a **posição** do nó, liga o vizinho (ou o início) ao nó seguinte, fecha a posição no vetor e libera o nó (ver [modulos/lista.md](../modulos/lista.md#52-remover)).
 4. Os totais do descritor diminuem: `tipos--`, `pecas -= quantidade`.
 5. Com `LISTA_OK`, `ck_registra_remover` guarda o resistor **com a quantidade que tinha**, para poder reinseri-lo igualzinho.
 

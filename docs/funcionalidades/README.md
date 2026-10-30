@@ -27,9 +27,8 @@ Para a explicação de cada **arquivo** de código, veja [Módulos do código-fo
 | 05 | [Retirar](05-retirar.md) | `[5]` | Sim | Sim |
 | 06 | [Repor](06-repor.md) | `[6]` | Sim | Sim |
 | 07 | [Reinicializar](07-reinicializar.md) | `[7]` | Sim | Sim (foto do estoque) |
-| 08 | [Diferencial](08-diferencial.md) | `[8]` | — (a definir) | — |
-| 09 | [Histórico](09-historico.md) | `[9]` | Só via checkpoint | — |
-| 10 | [Desfazer e refazer (checkpoint)](10-desfazer-refazer.md) | dentro do `[9]` | Sim | É o próprio desfazer |
+| 09 | [Histórico](09-historico.md) | `[8]` | Só via checkpoint | — |
+| 10 | [Desfazer e refazer (checkpoint)](10-desfazer-refazer.md) | dentro do `[8]` | Sim | É o próprio desfazer |
 | 11 | [Registro de ações (log)](11-registro-de-acoes.md) | automático | Não | — |
 | 12 | [Entrada de valores](12-entrada-de-valores.md) | em todas as perguntas | Não | — |
 | 13 | [Sair](13-sair.md) | `Esc` / `0` | Libera a memória | — |

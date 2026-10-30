@@ -2,7 +2,7 @@
 
 ← Anterior: [09 — Histórico](09-historico.md) · [Funcionalidades](README.md) · Próximo: [11 — Registro de ações](11-registro-de-acoes.md)
 
-**Onde:** dentro do `[9] Histórico`, tecla `C`
+**Onde:** dentro do `[8] Histórico`, tecla `C`
 **Código:** `checkpoint_interativo`, `checkpoint_texto`, `desenha_checkpoint`, `linha_checkpoint`, `aplica_checkpoint`, `registra_passo`, `checkpoint_navegar` em [src/ui/telas.c](../../src/ui/telas.c); [src/checkpoint.c](../../src/checkpoint.c); [src/pilha.c](../../src/pilha.c)
 **Módulos:** [Checkpoint](../modulos/checkpoint.md) · [Pilha](../modulos/pilha.md)
 **Testes:** [tests/test_checkpoint.c](../../tests/test_checkpoint.c), [tests/test_pilha.c](../../tests/test_pilha.c), [tests/test_telas.c](../../tests/test_telas.c), e2e
@@ -15,7 +15,7 @@ Voltar o estoque para **qualquer ponto da sessão atual** e, se quiser, avançar
 
 ## 2. Como usar
 
-1. Menu → `[9] Histórico` → tecla `C`.
+1. Menu → `[8] Histórico` → tecla `C`.
 2. Aparece a linha do tempo (mais recente em cima):
 
 ```text
@@ -115,7 +115,7 @@ flowchart LR
 | Pilhas | Estrutura natural para desfazer (LIFO); cada passo em O(1); segunda estrutura de dados para o relatório |
 | Guardar a operação, não cópias do estoque | Memória proporcional ao número de ações |
 | Linha do tempo com "ir para o ponto" | Mais claro que apertar "desfazer" várias vezes; mostra o que será afetado |
-| Só a sessão atual | O estoque não é salvo em disco; um desfazer persistente não teria estoque para aplicar |
+| Só a sessão atual | O banco guarda o estado do estoque, não as operações; o ponto 0 é o estoque carregado ao abrir |
 | Não usar o log para desfazer | O log guarda texto já formatado (`4,7 kΩ`), não o `double` exato |
 | Descartar o histórico se faltar memória | Nunca aplicar uma inversa sobre um estoque diferente do esperado |
 

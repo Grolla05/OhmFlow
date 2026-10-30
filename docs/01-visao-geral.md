@@ -51,10 +51,10 @@ O enunciado pede que cada nó da lista tenha dois campos e que o menu principal 
 | 5 — Retirar | Baixa de uma quantidade | `tela_retirar` |
 | 6 — Repor | Soma de uma quantidade | `tela_repor` |
 | 7 — Inicializar/Reinicializar | Esvazia a lista | `tela_reinicializar` |
-| 8 — Item diferencial | **Ainda a definir** (hoje mostra "Em breve") | `tela_diferencial` |
+| Item diferencial | Persistência em SQLite, checkpoint e busca binária | `[8] Histórico`, `persistencia.c` |
 | Sair liberando a memória | `Esc` ou `0` no menu | `tela_encerramento` + `libera_lista` |
 
-Além do que foi pedido, o projeto tem a opção **9 — Histórico**, que mostra as últimas ações registradas em arquivo e permite **voltar o estoque a qualquer ponto da sessão** (desfazer/refazer). Ela usa uma segunda estrutura de dados, a **pilha**, e é explicada em [modulos/checkpoint.md](modulos/checkpoint.md).
+Além do que foi pedido, o projeto tem a opção **8 — Histórico**, que mostra as últimas ações registradas em arquivo e permite **voltar o estoque a qualquer ponto da sessão** (desfazer/refazer). Ela usa uma segunda estrutura de dados, a **pilha**, e é explicada em [modulos/checkpoint.md](modulos/checkpoint.md).
 
 A **Parte 02** do trabalho (relatório e slides) pede: todas as estruturas usadas, código comentado e explicado, prints de cada teste e o link do repositório. Esta documentação serve de base para essa entrega.
 
@@ -64,7 +64,7 @@ A Figura 1 mostra a jornada de quem usa o programa: uma tela de boas-vindas, o m
 
 ```mermaid
 flowchart LR
-    A["Boas-vindas<br/>(logo, Enter)"] --> B["Menu<br/>(1 a 9)"]
+    A["Boas-vindas<br/>(logo, Enter)"] --> B["Menu<br/>(1 a 8)"]
     B --> C["Tela da função<br/>(perguntas)"]
     C --> D["Resultado<br/>(caixa verde, amarela ou vermelha)"]
     D --> B
@@ -83,6 +83,9 @@ flowchart LR
 | **Totais instantâneos** | Número de tipos e de peças aparecem no menu sem recontar a lista |
 | **Inserção em massa** | Vários resistores de uma vez, um por linha |
 | **Resistor colorido** | Na tela Novo, desenha o resistor com as faixas do código de cores do valor digitado |
+| **Estoque persistente** | O estoque é salvo em SQLite ao sair e volta na próxima abertura |
+| **Busca binária** | Encontra qualquer resistor em poucos passos, mesmo com milhares de tipos |
+| **Tela cheia** | O programa abre ocupando a tela inteira |
 | **Desfazer/refazer** | Volta o estoque a qualquer ponto da sessão atual e avança de novo |
 | **Registro de ações (log)** | Cada ação vira uma linha num arquivo de texto do dia |
 | **Interface de terminal caprichada** | Cores, molduras, tabelas alinhadas, menu por setas, telas centralizadas |
@@ -91,11 +94,10 @@ flowchart LR
 
 ## 6. O que o programa **não** faz (limites conhecidos)
 
-- **Não salva o estoque entre execuções.** Os dados vivem só na memória RAM; ao sair, o estoque é perdido. O que fica em disco é o *registro* das ações (log), não o estoque. Ver [08 — Decisões de projeto](08-decisoes-de-projeto.md).
+- **Não salva durante a sessão.** O estoque vai para o banco ao sair pelo menu; `Ctrl+C`, fechar a janela ou queda de energia perdem o que foi feito naquela execução. Ver [database/README.md](../database/README.md).
 - **Não roda oficialmente em Linux ou macOS.** O código tem trechos para esses sistemas, mas só o Windows 10/11 é suportado e testado.
 - **Não tem interface gráfica.** É um programa de terminal (janela de texto).
 - **Não controla quem retirou o quê.** Não há usuários nem senhas.
-- **O item diferencial (opção 8) ainda não foi definido.** As ideias estão em [refs/BRAINSTORM.md](../refs/BRAINSTORM.md).
 
 ## 7. Equipe
 

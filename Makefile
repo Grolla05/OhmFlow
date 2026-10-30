@@ -11,11 +11,12 @@
 #   make teste-setup  instala o setup em silencio, roda o programa e desinstala
 
 CC           = gcc
-CFLAGS       = -std=c99 -Wall -Wextra -pedantic -g -Isrc -Isrc/ui
-EXTRA_CFLAGS =
-LDLIBS       = -lm
 BUILD        = build
 DIST         = dist
+CFLAGS       = -std=c99 -Wall -Wextra -pedantic -g -Isrc -Isrc/ui -I$(BUILD)
+EXTRA_CFLAGS =
+# SQLite estático: o exe segue dependendo só de DLLs do Windows
+LDLIBS       = -Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -lm
 VERSAO      ?= 1.0.0
 
 # "1.2.3-ci" -> "1,2,3,0" (FILEVERSION numérico do recurso VERSIONINFO)
@@ -38,22 +39,28 @@ else
   CHECA_SUBSISTEMA = true
 endif
 
-SRC_LIB   = src/lista.c src/pilha.c src/checkpoint.c src/formatacao.c src/resistor.c src/log.c src/ui/ui.c src/ui/telas.c
+SRC_LIB   = src/lista.c src/pilha.c src/checkpoint.c src/formatacao.c src/resistor.c src/log.c src/persistencia.c src/ui/ui.c src/ui/telas.c
 SRC_MAIN  = src/main.c
-HEADERS   = $(wildcard src/*.h src/ui/*.h)
+SCHEMA    = database/database.sql
+SCHEMA_H  = $(BUILD)/schema_sql.h
+HEADERS   = $(wildcard src/*.h src/ui/*.h) $(SCHEMA_H)
 BIN       = $(DIST)/ohmflow$(EXE)
-TESTES    = test_lista test_pilha test_checkpoint test_formatacao test_log test_ui test_telas test_novo test_resistor
+TESTES    = test_lista test_pilha test_checkpoint test_formatacao test_log test_ui test_telas test_novo test_resistor test_persistencia
 TEST_BINS = $(addprefix $(BUILD)/,$(addsuffix $(EXE),$(TESTES)))
 
 E2E_ENTRADA  = tests/e2e/entrada.txt
 E2E_ESPERADO = tests/e2e/esperado.txt
 E2E_SAIDA    = $(BUILD)/e2e_saida.txt
 E2E_LOGS     = $(BUILD)/e2e_logs
+E2E_DB       = $(BUILD)/e2e.db
+E2E_ENTRADA_2  = tests/e2e/entrada_persistencia.txt
+E2E_ESPERADO_2 = tests/e2e/esperado_persistencia.txt
+E2E_SAIDA_2    = $(BUILD)/e2e_saida_persistencia.txt
 
 ASAN_FLAGS = -fsanitize=address,undefined -fno-sanitize-recover=all -fno-omit-frame-pointer
 
 SETUP = $(DIST)/ohm_flow_setup.exe
-# exe do instalador: igual ao de dev, mas grava os logs em %APPDATA%\OhmFlow\logs
+# exe do instalador: igual ao de dev, mas grava logs e banco em %APPDATA%\OhmFlow
 BIN_SETUP = $(DIST)/instalador/ohmflow$(EXE)
 
 .PHONY: all run test e2e asan cppcheck clean icone setup teste-setup
@@ -62,6 +69,10 @@ all: $(BIN)
 
 $(BUILD):
 	mkdir -p $(BUILD)
+
+# database.sql vira uma string C por linha; persistencia.c inclui o resultado
+$(SCHEMA_H): $(SCHEMA) | $(BUILD)
+	sed -e 's/\r$$//' -e 's/\\/\\\\/g' -e 's/"/\\"/g' -e 's/^/    "/' -e 's/$$/\\n"/' $< > $@
 
 # O .ico é versionado: só é gerado (Python + Pillow) se estiver faltando, para
 # um checkout limpo não depender da data de logo.png. Para regenerar após
@@ -83,7 +94,7 @@ $(BIN): $(SRC_MAIN) $(SRC_LIB) $(RES_OBJ) $(HEADERS)
 
 $(BIN_SETUP): $(SRC_MAIN) $(SRC_LIB) $(RES_OBJ) $(HEADERS)
 	mkdir -p $(@D)
-	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -DOHM_LOGS_APPDATA -o $@ $(SRC_MAIN) $(SRC_LIB) $(RES_OBJ) $(LDLIBS)
+	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -DOHM_LOGS_APPDATA -DOHM_DADOS_APPDATA -o $@ $(SRC_MAIN) $(SRC_LIB) $(RES_OBJ) $(LDLIBS)
 
 $(BUILD)/test_%$(EXE): tests/test_%.c tests/test_framework.h $(SRC_LIB) $(HEADERS) | $(BUILD)
 	$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -Itests -o $@ $< $(SRC_LIB) $(LDLIBS)
@@ -96,16 +107,22 @@ test: $(TEST_BINS)
 
 # Roda o binário real com a entrada roteirizada e confere, EM ORDEM, cada linha
 # de esperado.txt contra a saída (linhas vazias de esperado.txt são ignoradas).
+# Uma segunda execução confere que o estoque voltou do banco ($(E2E_DB)).
 # Os logs vão para $(E2E_LOGS) e são conferidos no fim (cabeçalho, ação, rodapé).
-e2e: $(BIN) | $(BUILD)
-	@$(CHECA_SUBSISTEMA)
-	@rm -rf $(E2E_LOGS)
-	@NO_COLOR=1 OHMFLOW_LOGS_DIR=$(E2E_LOGS) ./$(BIN) < $(E2E_ENTRADA) > $(E2E_SAIDA) 2>&1 || { echo "E2E FALHOU: programa saiu com erro"; exit 1; }
-	@awk 'NR==FNR { sub(/\r$$/, ""); if (length($$0)) esp[++n] = $$0; next } \
+E2E_CONFERE = awk 'NR==FNR { sub(/\r$$/, ""); if (length($$0)) esp[++n] = $$0; next } \
 	     { sub(/\r$$/, ""); if (i < n && index($$0, esp[i+1])) i++ } \
 	     END { if (i < n) { print "E2E FALHOU: nao encontrado (em ordem): " esp[i+1]; \
-	                        print "Saida completa em $(E2E_SAIDA)"; exit 1 } \
-	           print "E2E OK (" n " verificacoes)" }' $(E2E_ESPERADO) $(E2E_SAIDA)
+	                        print "Saida completa em $(2)"; exit 1 } \
+	           print "E2E OK (" n " verificacoes)" }' $(1) $(2)
+
+e2e: $(BIN) | $(BUILD)
+	@$(CHECA_SUBSISTEMA)
+	@rm -rf $(E2E_LOGS) $(E2E_DB)
+	@NO_COLOR=1 OHMFLOW_LOGS_DIR=$(E2E_LOGS) OHMFLOW_DB=$(E2E_DB) ./$(BIN) < $(E2E_ENTRADA) > $(E2E_SAIDA) 2>&1 || { echo "E2E FALHOU: programa saiu com erro"; exit 1; }
+	@$(call E2E_CONFERE,$(E2E_ESPERADO),$(E2E_SAIDA))
+	@# segunda sessão, sem cadastrar nada: o que a primeira salvou tem de voltar
+	@NO_COLOR=1 OHMFLOW_LOGS_DIR=$(E2E_LOGS) OHMFLOW_DB=$(E2E_DB) ./$(BIN) < $(E2E_ENTRADA_2) > $(E2E_SAIDA_2) 2>&1 || { echo "E2E FALHOU: segunda sessao saiu com erro"; exit 1; }
+	@$(call E2E_CONFERE,$(E2E_ESPERADO_2),$(E2E_SAIDA_2))
 	@log="$$(ls $(E2E_LOGS)/ohmflow_*.log 2>/dev/null | head -1)"; \
 	[ -n "$$log" ] || { echo "E2E FALHOU: log nao criado em $(E2E_LOGS)"; exit 1; }; \
 	for trecho in 'sessão iniciada em' \
@@ -116,6 +133,8 @@ e2e: $(BIN) | $(BUILD)
 	              '| INFO  | DESFAZER      | 3 tipos    | NOVO lote            | OK' \
 	              '| INFO  | REFAZER       | -          | REINICIALIZAR 3 tipos | OK' \
 	              '| INFO  | CHECKPOINT    | -          | ponto 11 → 9         | OK' \
+	              '| INFO  | BANCO         | -          | carga                | OK' \
+	              '| INFO  | BANCO         | -          | salvamento           | OK' \
 	              'sessão encerrada em'; do \
 	  grep -qF -- "$$trecho" "$$log" || { echo "E2E FALHOU: log sem: $$trecho (veja $$log)"; exit 1; }; \
 	done; \
@@ -141,8 +160,8 @@ setup: $(BIN_SETUP)
 teste-setup: setup
 	powershell -NoProfile -File tests/setup/test_setup.ps1
 
-cppcheck:
-	cppcheck --enable=warning,style,performance --error-exitcode=1 --inline-suppr --quiet -Isrc -Isrc/ui src/
+cppcheck: $(SCHEMA_H)
+	cppcheck --enable=warning,style,performance --error-exitcode=1 --inline-suppr --quiet -Isrc -Isrc/ui -I$(BUILD) src/
 
 clean:
 	rm -rf $(BUILD) $(DIST)

@@ -58,15 +58,16 @@ Uma falha mostra arquivo, linha e os valores: `FALHA tests/test_lista.c:42: ... 
 
 | Suíte | Testes | Cobre |
 | --- | --- | --- |
-| [test_lista.c](../tests/test_lista.c) | 20 | Inserção ordenada, remoção, consulta, retirar/repor, estouro, invariantes, passos, `NULL` |
+| [test_lista.c](../tests/test_lista.c) | 24 | Inserção ordenada, remoção, consulta, retirar/repor, estouro, invariantes, busca binária (limite de passos), `NULL` |
 | [test_pilha.c](../tests/test_pilha.c) | 7 | LIFO, topo, posse dos itens, liberação, percurso |
 | [test_checkpoint.c](../tests/test_checkpoint.c) | 12 | Cada inversa, lote em um passo, refazer limpo por ação nova, ir para um ponto |
 | [test_formatacao.c](../tests/test_formatacao.c) | 12 | Formatos de entrada, chave canônica, grandezas, arredondamento |
 | [test_log.c](../tests/test_log.c) | 16 | Formato das colunas, sessão, falhas de I/O, leitura das últimas ações |
-| [test_ui.c](../tests/test_ui.c) | 30 | Largura visível, alinhamento de caixas/tabelas, cores, espera por Enter, centralização |
-| [test_telas.c](../tests/test_telas.c) | 28 | Navegação do menu, decodificação de teclas, Histórico, checkpoint pela tela |
+| [test_ui.c](../tests/test_ui.c) | 44 | Largura visível, alinhamento de caixas/tabelas, cores, espera por Enter, centralização, tipo de terminal para a tela cheia |
+| [test_telas.c](../tests/test_telas.c) | 35 | Navegação do menu, banner no menu, decodificação de teclas, Histórico, checkpoint pela tela |
 | [test_novo.c](../tests/test_novo.c) | 17 | `parse_item`, Novo unitário e em massa, resistor recolorido no lote, ajustes de várias telas |
 | [test_resistor.c](../tests/test_resistor.c) | 11 | Código de cores de 4 faixas, nomes das cores, desenho do resistor, linha respondida |
+| [test_persistencia.c](../tests/test_persistencia.c) | 7 | Banco novo, ida e volta, foto completa, lista vazia, banco corrompido preservado, argumentos `NULL`, caminho |
 | **Total** | **153** | |
 
 ### Técnicas usadas

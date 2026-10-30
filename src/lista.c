@@ -3,10 +3,15 @@
  *
  * Lista simplesmente encadeada com nó descritor: o descritor guarda o ponteiro
  * para o primeiro elemento (NULL se vazia) e os totais de tipos e peças,
- * atualizados a cada operação. Os nós ficam em ordem crescente de resistência,
- * o que permite encerrar as buscas assim que passamos do valor procurado.
+ * atualizados a cada operação. Os nós ficam em ordem crescente de resistência.
+ *
+ * Nó encadeado não tem acesso direto ao meio, então o descritor mantém também
+ * `indice`, um vetor dinâmico com o endereço de cada nó na mesma ordem. É ele
+ * que permite a busca binária: toda busca custa O(log n) comparações, e só
+ * inserir ou remover paga O(n) para deslocar o vetor.
  */
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 #include <math.h>
 #include "lista.h"
@@ -19,12 +24,15 @@ typedef struct elemento Elem;
 
 struct descritor {
     Elem     *inicio; /* primeiro nó, ou NULL se vazia     */
+    Elem    **indice; /* indice[i] = i-ésimo nó em ordem crescente */
+    int       capacidade; /* posições alocadas em indice   */
     int       tipos;  /* quantidade de nós                 */
     long long pecas;  /* soma das quantidades (long long: int * nós não cabe em long de 32 bits) */
     int       passos; /* nós examinados pela última busca  */
 };
 
 #define TOLERANCIA_RELATIVA 1e-9
+#define CAPACIDADE_INICIAL  8
 
 int mesma_resistencia(double a, double b)
 {
@@ -33,36 +41,50 @@ int mesma_resistencia(double a, double b)
 }
 
 /*
- * Endereço do ponteiro que aponta (ou apontaria) para o nó `ohms`: o campo
- * `inicio` do descritor ou o `prox` do nó anterior. Para no primeiro nó com
- * resistência >= ohms, graças à ordenação. Com o ponteiro para ponteiro,
- * inserir e remover no início, no meio ou no fim é o mesmo código.
+ * Busca binária em `indice`: olha o termo do meio e descarta a metade que não
+ * pode conter `ohms`, porque à esquerda as resistências diminuem e à direita
+ * aumentam. Devolve a posição do nó (*achou = 1) ou, se ele não existe, a
+ * posição onde deveria entrar (*achou = 0), que também serve para inserir.
  */
-static Elem **localiza(Lista *li, double ohms)
+static int localiza(Lista *li, double ohms, int *achou)
 {
-    Elem **pp = &li->inicio;
+    int ini = 0, fim = li->tipos - 1;
     li->passos = 0;
-    while (*pp != NULL) {
+    *achou = 0;
+    while (ini <= fim) {
+        int meio = ini + (fim - ini) / 2;
+        double valor = li->indice[meio]->dados.resistencia;
         li->passos++;
-        if (!((*pp)->dados.resistencia < ohms
-              && !mesma_resistencia((*pp)->dados.resistencia, ohms)))
-            break;
-        pp = &(*pp)->prox;
+        if (mesma_resistencia(valor, ohms)) {
+            *achou = 1;
+            return meio;
+        }
+        if (valor < ohms) ini = meio + 1; /* direita: resistências maiores  */
+        else              fim = meio - 1; /* esquerda: resistências menores */
     }
-    return pp;
-}
-
-/* 1 se o nó existe e tem a resistência procurada */
-static int e_o_no(const Elem *no, double ohms)
-{
-    return no != NULL && mesma_resistencia(no->dados.resistencia, ohms);
+    return ini;
 }
 
 /* Nó com a resistência pedida, ou NULL */
 static Elem *busca(Lista *li, double ohms)
 {
-    Elem *no = *localiza(li, ohms);
-    return e_o_no(no, ohms) ? no : NULL;
+    int achou;
+    int pos = localiza(li, ohms, &achou);
+    return achou ? li->indice[pos] : NULL;
+}
+
+/* Garante vaga para mais um nó em `indice`, dobrando a capacidade se preciso */
+static int garante_vaga(Lista *li)
+{
+    Elem **novo;
+    int capacidade;
+    if (li->tipos < li->capacidade) return 1;
+    capacidade = li->capacidade > 0 ? li->capacidade * 2 : CAPACIDADE_INICIAL;
+    novo = realloc(li->indice, (size_t)capacidade * sizeof *novo);
+    if (novo == NULL) return 0;
+    li->indice = novo;
+    li->capacidade = capacidade;
+    return 1;
 }
 
 static int resistencia_valida(double ohms)
@@ -90,6 +112,8 @@ Lista *cria_lista(void)
     Lista *li = malloc(sizeof(Lista));
     if (li != NULL) {
         li->inicio = NULL;
+        li->indice = NULL;
+        li->capacidade = 0;
         li->tipos = 0;
         li->pecas = 0;
         li->passos = 0;
@@ -101,6 +125,7 @@ void libera_lista(Lista *li)
 {
     if (li == NULL) return;
     libera_nos(li);
+    free(li->indice);
     free(li);
 }
 
@@ -144,18 +169,30 @@ void percorre_lista(const Lista *li, void (*f)(const Resistor *r, void *ctx), vo
 
 int insere_lista_ordenada(Lista *li, Resistor r)
 {
-    Elem **pp, *novo;
+    Elem *novo, *anterior;
+    int pos, achou;
     if (li == NULL) return LISTA_ERRO;
     if (!resistencia_valida(r.resistencia) || r.quantidade < 0) return LISTA_INVALIDO;
 
-    pp = localiza(li, r.resistencia); /* primeiro nó com resistência >= r */
-    if (e_o_no(*pp, r.resistencia)) return LISTA_DUPLICADO;
+    pos = localiza(li, r.resistencia, &achou);
+    if (achou) return LISTA_DUPLICADO;
 
+    /* vaga primeiro: se faltar memória, nada mudou na lista */
+    if (!garante_vaga(li)) return LISTA_ERRO;
     novo = malloc(sizeof(Elem));
     if (novo == NULL) return LISTA_ERRO;
     novo->dados = r;
-    novo->prox = *pp; /* início, meio ou fim: o mesmo encadeamento */
-    *pp = novo;
+
+    /* encadeia depois do vizinho da esquerda (ou no início) */
+    anterior = pos > 0 ? li->indice[pos - 1] : NULL;
+    novo->prox = anterior != NULL ? anterior->prox : li->inicio;
+    if (anterior != NULL) anterior->prox = novo;
+    else li->inicio = novo;
+
+    /* abre a posição no vetor, deslocando quem é maior */
+    memmove(&li->indice[pos + 1], &li->indice[pos],
+            (size_t)(li->tipos - pos) * sizeof *li->indice);
+    li->indice[pos] = novo;
     li->tipos++;
     li->pecas += r.quantidade;
     return LISTA_OK;
@@ -165,12 +202,20 @@ int insere_lista_ordenada(Lista *li, Resistor r)
 
 int remove_lista(Lista *li, double ohms)
 {
-    Elem **pp, *no;
+    Elem *no;
+    int pos, achou;
     if (li == NULL) return LISTA_ERRO;
-    pp = localiza(li, ohms);
-    no = *pp;
-    if (!e_o_no(no, ohms)) return LISTA_NAO_ENCONTRADO;
-    *pp = no->prox; /* o anterior (ou o início) passa a apontar para o seguinte */
+    pos = localiza(li, ohms, &achou);
+    if (!achou) return LISTA_NAO_ENCONTRADO;
+    no = li->indice[pos];
+
+    /* o anterior (ou o início) passa a apontar para o seguinte */
+    if (pos > 0) li->indice[pos - 1]->prox = no->prox;
+    else li->inicio = no->prox;
+
+    /* fecha a posição no vetor */
+    memmove(&li->indice[pos], &li->indice[pos + 1],
+            (size_t)(li->tipos - pos - 1) * sizeof *li->indice);
     li->tipos--;
     li->pecas -= no->dados.quantidade;
     free(no);

@@ -196,6 +196,113 @@ int ui_linhas_terminal(void)
     return linhas > 10 ? linhas : 10;
 }
 
+/* ---- tela cheia ------------------------------------------------------- */
+
+int ui_tipo_terminal(const char *classe_janela, const char *wt_session,
+                     const char *term_program)
+{
+    if (term_program != NULL && strcmp(term_program, "vscode") == 0)
+        return UI_TERM_OUTRO;
+    if (wt_session != NULL && wt_session[0] != '\0') return UI_TERM_WINDOWS_TERMINAL;
+    if (classe_janela == NULL) return UI_TERM_OUTRO;
+    if (strcmp(classe_janela, "PseudoConsoleWindow") == 0) return UI_TERM_WINDOWS_TERMINAL;
+    if (strcmp(classe_janela, "ConsoleWindowClass") == 0) return UI_TERM_CONHOST;
+    return UI_TERM_OUTRO;
+}
+
+#ifdef _WIN32
+#define TELA_CHEIA_ESPERA_MS 500
+#define TELA_CHEIA_PASSO_MS  25
+
+static int modo_tela_cheia = UI_TERM_OUTRO; /* o que ui_tela_cheia ativou */
+
+/* F11 do Windows Terminal alterna, então é preciso saber o estado atual:
+ * 1 se a janela em foco já cobre o monitor inteiro */
+static int janela_cobre_monitor(HWND janela)
+{
+    MONITORINFO mi;
+    RECT r;
+    mi.cbSize = sizeof mi;
+    if (!GetWindowRect(janela, &r)
+        || !GetMonitorInfoA(MonitorFromWindow(janela, MONITOR_DEFAULTTONEAREST), &mi))
+        return 0;
+    return r.left <= mi.rcMonitor.left && r.top <= mi.rcMonitor.top
+        && r.right >= mi.rcMonitor.right && r.bottom >= mi.rcMonitor.bottom;
+}
+
+/* Janela em foco, se for do Windows Terminal; NULL se não. Pseudoconsole também
+ * é usado por outros programas, e o F11 sintético vai para quem tem o foco */
+static HWND foco_windows_terminal(void)
+{
+    char classe[64] = "";
+    HWND foco = GetForegroundWindow();
+    if (foco == NULL || !GetClassNameA(foco, classe, sizeof classe)) return NULL;
+    return strcmp(classe, "CASCADIA_HOSTING_WINDOW_CLASS") == 0 ? foco : NULL;
+}
+
+static void envia_f11(void)
+{
+    INPUT teclas[2];
+    memset(teclas, 0, sizeof teclas);
+    teclas[0].type = INPUT_KEYBOARD;
+    teclas[0].ki.wVk = VK_F11;
+    teclas[1] = teclas[0];
+    teclas[1].ki.dwFlags = KEYEVENTF_KEYUP;
+    SendInput(2, teclas, sizeof teclas[0]);
+}
+#endif
+
+void ui_tela_cheia(void)
+{
+#ifdef _WIN32
+    char classe[64] = "";
+    HWND console = GetConsoleWindow();
+    int tipo, cols = 0, rows = 0, novo_cols = 0, novo_rows = 0, espera;
+
+    if (!ui_interativo()) return;
+    if (console != NULL) GetClassNameA(console, classe, sizeof classe);
+    tipo = ui_tipo_terminal(classe, getenv("WT_SESSION"), getenv("TERM_PROGRAM"));
+    tamanho_console(&cols, &rows);
+
+    if (tipo == UI_TERM_WINDOWS_TERMINAL) {
+        HWND foco = foco_windows_terminal();
+        if (foco == NULL || janela_cobre_monitor(foco)) return;
+        envia_f11();
+    } else if (tipo == UI_TERM_CONHOST) {
+        COORD tamanho;
+        if (!SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE),
+                                   CONSOLE_FULLSCREEN_MODE, &tamanho)) {
+            ShowWindow(console, SW_MAXIMIZE);
+            return; /* maximizada: nada a desfazer ao sair */
+        }
+    } else {
+        return;
+    }
+    modo_tela_cheia = tipo;
+
+    /* o terminal redimensiona depois: desenhar antes usaria o tamanho antigo */
+    for (espera = 0; espera < TELA_CHEIA_ESPERA_MS; espera += TELA_CHEIA_PASSO_MS) {
+        Sleep(TELA_CHEIA_PASSO_MS);
+        tamanho_console(&novo_cols, &novo_rows);
+        if (novo_cols != cols || novo_rows != rows) break;
+    }
+#endif
+}
+
+void ui_sair_tela_cheia(void)
+{
+#ifdef _WIN32
+    if (modo_tela_cheia == UI_TERM_WINDOWS_TERMINAL) {
+        if (foco_windows_terminal() != NULL) envia_f11();
+    } else if (modo_tela_cheia == UI_TERM_CONHOST) {
+        COORD tamanho;
+        SetConsoleDisplayMode(GetStdHandle(STD_OUTPUT_HANDLE),
+                              CONSOLE_WINDOWED_MODE, &tamanho);
+    }
+    modo_tela_cheia = UI_TERM_OUTRO;
+#endif
+}
+
 /* ---- centralização ---------------------------------------------------- */
 
 void ui_definir_centralizado(int ativo) { centralizar = ativo != 0; }

@@ -36,7 +36,7 @@ jobs:
           msystem: UCRT64
           update: true
           install: make
-          pacboy: gcc:p cppcheck:p
+          pacboy: gcc:p cppcheck:p sqlite3:p
 
       - name: Instalar Inno Setup 6
         shell: pwsh

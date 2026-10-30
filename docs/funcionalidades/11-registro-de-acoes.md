@@ -17,7 +17,7 @@ Deixar um **rastro permanente** de tudo o que foi feito, mesmo depois de fechar 
 
 Não há nada a fazer: o registro é automático. Para ver:
 
-- Pelo programa: `[9] Histórico` (15 ações mais recentes dos últimos 30 dias).
+- Pelo programa: `[8] Histórico` (15 ações mais recentes dos últimos 30 dias).
 - Pelo arquivo: abra no Bloco de Notas o `ohmflow_AAAA-MM-DD.log` da pasta da Tabela 1.
 
 **Tabela 1 — Onde ficam os arquivos**

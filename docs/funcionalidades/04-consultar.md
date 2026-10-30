@@ -36,7 +36,7 @@ A quantidade aparece em **verde** se houver peças e em **vermelho** se for zero
 
 ## 4. Por dentro
 
-`consulta_lista(li, ohms, &qtd)` chama `busca`, que usa `localiza`: percorre a lista **do início e para no primeiro nó maior ou igual** ao procurado. Graças à ordenação, procurar um valor que não existe raramente percorre a lista toda.
+`consulta_lista(li, ohms, &qtd)` chama `busca`, que usa `localiza`: uma **busca binária** que olha o termo do meio e descarta a metade que não pode conter o valor. À esquerda as resistências diminuem e à direita aumentam, então 1.000 tipos se resolvem em no máximo 10 passos, com ou sem resultado.
 
 **Tabela 1 — Nós examinados na lista `220 Ω → 4,7 kΩ → 10 kΩ`**
 

@@ -20,32 +20,34 @@ Aparece o logo **OhmFlow** em arte ASCII laranja, o subtítulo "Estoque de Resis
 ### Menu
 
 ```text
-╭─  OhmFlow System  ───────────────────╮
-│      Controle de Estoque 8-Bit       │
-├──────────────────────────────────────┤
-│  ● [1] Novo         ● [5] Retirar    │
-│  ● [2] Remover      ● [6] Repor      │
-│  ● [3] Listar       ● [7] Reinicializar
-│  ● [4] Consultar    ● [8] (diferencial)
-│  ● [9] Histórico                     │
-│  Tipos: 3    │ Peças: 20             │
-╰──────────────────────────────────────╯
- ↑↓←→/WASD Navegar · [1-9] Acesso rápido · [Enter] Confirmar · [Esc/0] Sair
+╭────────────────────────────────────────────╮
+│        Controle de Estoque · 8-Bit         │
+├────────────────────────────────────────────┤
+│                                            │
+│   › [1] Novo         [5] Retirar           │
+│     [2] Remover      [6] Repor             │
+│     [3] Listar       [7] Reinicializar     │
+│     [4] Consultar    [8] Histórico         │
+│                                            │
+│             Tipos 3 · Peças 20             │
+│                                            │
+╰────────────────────────────────────────────╯
+ ↑↓←→/WASD Navegar · [1-8] Acesso rápido · [Enter] Confirmar · [Esc/0] Sair
 ```
 
 **Tabela 1 — Teclas**
 
 | Tecla | Efeito |
 | --- | --- |
-| `↑` `W` | Sobe; da primeira linha vai para `[9]`; do `[9]` vai para a 4ª linha |
-| `↓` `S` | Desce; da 4ª linha vai para `[9]`; do `[9]` volta à 1ª linha |
-| `←` `A` / `→` `D` | Troca de coluna (sem efeito no `[9]`) |
-| `1` a `9` | Abre a opção direto |
+| `↑` `W` | Sobe; da primeira linha vai para a última da mesma coluna |
+| `↓` `S` | Desce; da última linha volta à primeira da mesma coluna |
+| `←` `A` / `→` `D` | Troca de coluna |
+| `1` a `8` | Abre a opção direto |
 | `Enter` | Abre a opção selecionada (começa no `[1]`) |
 | `Esc` ou `0` | Sai na hora |
 | Outras | Ignoradas |
 
-A opção selecionada fica em **laranja e negrito**; as demais, em branco. Toda a tela é centralizada na janela.
+A opção selecionada fica em **laranja e negrito**; as demais, em branco. O banner do OhmFlow fica logo acima do card do menu, e os dois são centralizados na tela como um bloco só. Em terminal estreito (menos de 65 colunas), baixo (menos de 22 linhas) ou com `OHM_ASCII`, o banner sai e o menu volta a ter o título na borda.
 
 ## 3. Regras e casos especiais
 
@@ -55,7 +57,7 @@ A opção selecionada fica em **laranja e negrito**; as demais, em branco. Toda 
 | `Esc` sozinho | Sai em até 0,1 s, sem esperar outra tecla (diferencia `Esc` de uma seta) |
 | Alt+tecla, F1, teclas desconhecidas | Ignoradas |
 | Terminal fechado / fim da entrada | Tratado como Sair |
-| Sem terminal (testes) | O menu pede `Opção:` por linha; `0` sai; texto inválido mostra *"Opção inválida "x". Escolha de 0 a 9."* |
+| Sem terminal (testes) | O menu pede `Opção:` por linha; `0` sai; texto inválido mostra *"Opção inválida "x". Escolha de 0 a 8."* |
 | `Ctrl+C` com o menu aberto | O cursor e o terminal são restaurados antes de o programa encerrar |
 
 ## 4. Por dentro
@@ -64,7 +66,7 @@ A opção selecionada fica em **laranja e negrito**; as demais, em branco. Toda 
 flowchart TD
     A["tela_menu(li)"] --> B{"ui_interativo()?"}
     B -- não --> C["desenha_menu + ui_ler_linha('Opção:')"]
-    C --> D{"0..9?"}
+    C --> D{"0..8?"}
     D -- sim --> R(["devolve opção"])
     D -- não --> E["log ERRO MENU + mensagem"] --> C
     B -- sim --> F["esconde cursor<br/>limpa tela, centraliza<br/>desenha_menu(li, selecao)"]
@@ -94,13 +96,13 @@ Só no modo sem terminal, opções inválidas geram:
 | --- | --- |
 | Navegação por setas **e** por números | Setas são intuitivas; números são rápidos para quem já conhece |
 | WASD | Alternativa para teclados sem setas ou para quem prefere |
-| `[9] Histórico` na linha de baixo | Ocupou o lugar do antigo "[0] Sair"; Sair virou tecla (`Esc`/`0`) e não item, liberando espaço |
+| Grade 4×2 com `[8] Histórico` | Sair virou tecla (`Esc`/`0`) e não item; sem o placeholder do diferencial, as oito opções fecham a grade |
 | Contadores no menu | Visão instantânea do estoque sem abrir o Listar |
 | Laranja + branco | Identidade visual "retrô 8-bit" do projeto |
 
 ## 7. Testes
 
-- `test_telas.c`: todas as direções e bordas de `navegar_menu`; `decodifica_tecla` com setas, `Esc` isolado, sequência desconhecida e fim da entrada; `Esc` sai; `9` abre o Histórico; cores laranja/branco; Histórico visível como `[9]`.
+- `test_telas.c`: todas as direções e bordas de `navegar_menu`; `decodifica_tecla` com setas, `Esc` isolado, sequência desconhecida e fim da entrada; `Esc` sai; `8` abre o Histórico e `9` não faz nada; cores laranja/branco; Histórico visível como `[8]`; `menu_com_banner` nos limites de largura e altura.
 - `test_novo.c`: rótulo "Novo" no menu.
 - e2e: o roteiro inteiro passa pelo menu sem terminal, incluindo a opção inválida `x`.
 

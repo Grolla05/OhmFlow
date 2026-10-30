@@ -10,8 +10,7 @@
 #include "lista.h"
 #include "checkpoint.h"
 
-/* Opções do menu principal. [9] Histórico ocupa a linha de baixo, onde
- * ficava o antigo "[0] Sair" */
+/* Opções do menu principal: grade de 4 linhas e 2 colunas */
 enum {
     OPCAO_INSERIR = 1,
     OPCAO_REMOVER,
@@ -20,7 +19,6 @@ enum {
     OPCAO_RETIRAR,
     OPCAO_REPOR,
     OPCAO_REINICIALIZAR,
-    OPCAO_DIFERENCIAL,
     OPCAO_HISTORICO,
     OPCAO_TOTAL
 };
@@ -51,10 +49,10 @@ enum {
  */
 int decodifica_tecla(int (*proximo)(void *ctx, int bloqueia), void *ctx);
 
-/* Retorna nova seleção (1-9) dado a seleção atual e uma tecla KEY_* */
+/* Retorna nova seleção (1-8) dado a seleção atual e uma tecla KEY_* */
 int navegar_menu(int selecao, int tecla);
 
-/* Opção escolhida pela tecla no menu (Esc/0/EOF -> OPCAO_SAIR, dígito 1-9,
+/* Opção escolhida pela tecla no menu (Esc/0/EOF -> OPCAO_SAIR, dígito 1-8,
  * Enter na `selecao`) ou MENU_CONTINUA se a tecla só navega ou é ignorada */
 int menu_tecla_opcao(int tecla, int selecao);
 
@@ -97,6 +95,15 @@ int banner_linha(int i, char *buf, size_t n);
  * 0 com -DOHM_ASCII ou terminal estreito (fica o logo de texto) */
 int banner_disponivel(int colunas);
 
+/* Linhas do bloco do menu (card + dica) e altura mínima para o banner ficar
+ * logo acima dele: margem + banner + linha em branco + bloco + linha do cursor */
+#define MENU_LINHAS 13
+#define MENU_ALTURA_COM_BANNER (BANNER_LINHAS + 3 + MENU_LINHAS)
+
+/* 1 se o menu mostra o banner no topo num terminal de colunas x linhas; 0 =
+ * layout compacto, com o título na borda do card */
+int menu_com_banner(int colunas, int linhas);
+
 void tela_boas_vindas(void);
 int  tela_menu(const Lista *li); /* devolve OPCAO_*; EOF devolve OPCAO_SAIR */
 void tela_inserir(Lista *li);
@@ -106,7 +113,6 @@ void tela_consultar(Lista *li);
 void tela_retirar(Lista *li);
 void tela_repor(Lista *li);
 void tela_reinicializar(Lista *li);
-void tela_diferencial(void);
 void tela_historico(Lista *li); /* últimas ações dos logs + checkpoint da sessão */
 void tela_encerramento(const Lista *li);
 
