@@ -13,9 +13,10 @@ Antes de começar, certifique-se de ter instalado:
 | `gcc`      | 11+           | Compilar o projeto |
 | `make`     | 4.3+          | Executar targets de build |
 | `git`      | 2.30+         | Controle de versão |
+| `sqlite3`  | UCRT64        | Biblioteca do banco, ligada de forma estática |
 | `cppcheck` | 2.10+ (opt.)  | Análise estática |
 
-Veja as instruções de instalação por SO no [guia de build](../docs/05-build-e-ambiente.md).
+O projeto é suportado somente no Windows 10/11, com MSYS2 UCRT64. Veja a instalação pelo PowerShell no [guia de build](../docs/05-build-e-ambiente.md).
 
 ---
 
@@ -36,6 +37,8 @@ make EXTRA_CFLAGS=-Werror all test e2e cppcheck
 ---
 
 ## Fluxo de trabalho
+
+Este fluxo vale para quem contribui de fora, por fork. A equipe do projeto trabalha na branch `Grolla`, que entra em `main` por pull request.
 
 ```
 main
@@ -65,8 +68,6 @@ main
 
    ```sh
    make EXTRA_CFLAGS=-Werror all test e2e cppcheck
-   # No Linux, também:
-   make asan
    ```
 
 5. **Abra um Pull Request** para `main` usando o template disponível.
@@ -89,8 +90,8 @@ test(lista): cobre remoção de único elemento
 
 ## Padrões de código
 
-- **C11** (`-std=c11`); sem extensões específicas de compilador
-- Sem warnings com `-Wall -Wextra -Wpedantic -Werror`
+- **C99** (`-std=c99`); sem extensões específicas de compilador
+- Sem warnings com `-Wall -Wextra -pedantic -Werror`
 - `cppcheck` sem novos erros ou warnings
 - Funções públicas documentadas em `.h` com propósito, parâmetros e retorno
 - Sem `printf` de debug no código enviado
@@ -105,7 +106,7 @@ Todo código novo ou modificado deve ter testes correspondentes em `tests/`.
 |--------------|-----------------|-----------|
 | Unitário     | `make test`     | Lógica isolada de cada módulo |
 | Ponta a ponta| `make e2e`      | Fluxo completo via stdin simulado |
-| Memória      | `make asan`     | AddressSanitizer + UBSan (Linux) |
+| Instalador   | `make teste-setup` | Instala, roda e desinstala (requer Inno Setup 6) |
 
 Para adicionar um caso de teste unitário, siga o padrão em `tests/test_lista.c` ou `tests/test_formatacao.c`. O framework está em `tests/test_framework.h` (sem dependências externas).
 

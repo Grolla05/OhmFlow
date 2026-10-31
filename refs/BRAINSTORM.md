@@ -4,7 +4,7 @@ Ideias para o **item diferencial** exigido pelo enunciado ([Aula_07_Projeto01_22
 
 > "Inserir um item diferencial em seu Menu, cada grupo deverá ter um diferencial de especificidade dentro deste Menu em seu algoritmo."
 
-Hoje a opção 8 existe no menu com o rótulo `(diferencial)` e [`tela_diferencial`](../src/ui/telas.c) só mostra "Em breve". Este documento lista candidatos, compara e recomenda. **Nada aqui está decidido.**
+**Status: decidido e implementado.** O diferencial do grupo é o conjunto de persistência em SQLite, checkpoint com desfazer/refazer e busca binária ([D18](../docs/08-decisoes-de-projeto.md#d18--diferencial-do-grupo-fora-do-menu)), e a opção 8 virou o `[8] Histórico`. Este documento fica como registro das ideias levantadas quando a opção 8 ainda era um placeholder; o que segue descreve aquele momento, não o programa atual. A persistência feita difere do esboço abaixo: tabela `resistores`, em `database/database.sql`, com SQLite ligado de forma estática e gravação só ao abrir e ao sair ([database/README.md](../database/README.md)).
 
 ---
 
@@ -86,5 +86,4 @@ Seguir o workflow do [AGENTS.md](../AGENTS.md):
 2. Regra de negócio em `lista`/módulo novo; `telas.c` só conversa com o usuário.
 3. C99 com `-Wall -Wextra -pedantic -Werror`, sem vazamento de memória.
 4. Textos e nomes em pt-BR.
-5. Trocar o rótulo `(diferencial)` em `desenha_menu` pelo nome real, atualizar a linha 8 da tabela do [README.md](../README.md) e acrescentar o fluxo da opção 8 ao e2e ([tests/e2e/](../tests/e2e/)).
-6. Documentar no `CHANGES.md` e pedir validação antes do commit.
+5. Documentar no `CHANGES.md` e pedir validação antes do commit.

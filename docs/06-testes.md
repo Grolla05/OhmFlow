@@ -16,7 +16,7 @@ Em vez de abrir o programa e clicar em tudo a cada mudança, escrevemos **pequen
 flowchart TB
     S["Teste do instalador (1)<br/>instala, roda, desinstala"]
     E["Teste ponta a ponta — e2e (1)<br/>executável real + roteiro"]
-    U["Testes unitários (9 suítes, ~150 testes)<br/>cada módulo isolado"]
+    U["Testes unitários (10 suítes, 185 testes)<br/>cada módulo isolado"]
     A["Análise estática (cppcheck) + compilação com -Werror"]
     S --> E --> U --> A
 ```
@@ -68,7 +68,7 @@ Uma falha mostra arquivo, linha e os valores: `FALHA tests/test_lista.c:42: ... 
 | [test_novo.c](../tests/test_novo.c) | 17 | `parse_item`, Novo unitário e em massa, resistor recolorido no lote, ajustes de várias telas |
 | [test_resistor.c](../tests/test_resistor.c) | 11 | Código de cores de 4 faixas, nomes das cores, desenho do resistor, linha respondida |
 | [test_persistencia.c](../tests/test_persistencia.c) | 7 | Banco novo, ida e volta, foto completa, lista vazia, banco corrompido preservado, argumentos `NULL`, caminho |
-| **Total** | **153** | |
+| **Total** | **185** | |
 
 ### Técnicas usadas
 
@@ -83,16 +83,20 @@ Uma falha mostra arquivo, linha e os valores: `FALHA tests/test_lista.c:42: ... 
 
 ## 5. Teste ponta a ponta (`make e2e`)
 
-Roda o **executável real**, sem terminal, com o teclado substituído por [tests/e2e/entrada.txt](../tests/e2e/entrada.txt) e confere a saída contra [tests/e2e/esperado.txt](../tests/e2e/esperado.txt).
+Roda o **executável real**, sem terminal, com o teclado substituído por [tests/e2e/entrada.txt](../tests/e2e/entrada.txt) e confere a saída contra [tests/e2e/esperado.txt](../tests/e2e/esperado.txt). Depois roda uma **segunda sessão** no mesmo banco, com [entrada_persistencia.txt](../tests/e2e/entrada_persistencia.txt), e confere com [esperado_persistencia.txt](../tests/e2e/esperado_persistencia.txt) que o estoque voltou.
 
 ```mermaid
 flowchart LR
-    A["entrada.txt<br/>(1, 4k7, 10, 1, 220, ...)"] --> B["NO_COLOR=1<br/>OHMFLOW_LOGS_DIR=build/e2e_logs<br/>dist/ohmflow.exe"]
+    A["entrada.txt<br/>(1, 4k7, 10, 1, 220, ...)"] --> B["NO_COLOR=1<br/>OHMFLOW_LOGS_DIR=build/e2e_logs<br/>OHMFLOW_DB=build/e2e.db<br/>dist/ohmflow.exe"]
     B --> C["build/e2e_saida.txt"]
     C --> D{"awk: cada linha de esperado.txt<br/>aparece, EM ORDEM?"}
+    B --> DB[("build/e2e.db")]
+    DB --> S2["2ª sessão<br/>entrada_persistencia.txt"]
+    S2 --> D2{"awk: esperado_persistencia.txt<br/>aparece, EM ORDEM?"}
     B --> L["build/e2e_logs/ohmflow_*.log"]
     L --> G{"grep: trechos obrigatórios<br/>no log?"}
     D --> R["E2E OK (n verificações)"]
+    D2 --> R3["E2E OK (n verificações)"]
     G --> R2["E2E LOG OK"]
 ```
 
@@ -120,8 +124,9 @@ Antes, confere com `objdump` que o exe usa o **subsistema console** (CUI).
 | Histórico + checkpoint | `9`, ponto `9` | *"2 ações desfeitas"*, *"Agora no ponto 9 de 11"*, lista volta a 68 peças |
 | Refazer | `9`, ponto `11` | *"2 ações refeitas"*, lista com 15 peças |
 | Sair | `0` | *"Obrigado por usar o OhmFlow"*, *"Estoque final: 3 tipos · 15 peças"* |
+| 2ª sessão | `3`, `0` | Sem cadastrar nada, Listar mostra os 3 tipos e 15 peças salvos no banco |
 
-No log, o e2e exige: cabeçalho da sessão, `NOVO 4,7 kΩ qtd 10 OK`, `RETIRAR ... SEM ESTOQUE`, `NOVO "abc"`, `LOTE CONCLUÍDO`, `DESFAZER`, `REFAZER`, `CHECKPOINT ponto 11 → 9` e o rodapé.
+No log, o e2e exige: cabeçalho da sessão, `NOVO 4,7 kΩ qtd 10 OK`, `RETIRAR ... SEM ESTOQUE`, `NOVO "abc"`, `LOTE CONCLUÍDO`, `DESFAZER`, `REFAZER`, `CHECKPOINT ponto 11 → 9`, `BANCO carga OK`, `BANCO salvamento OK` e o rodapé.
 
 > **Ao mudar uma mensagem de tela**, atualize `esperado.txt` (e os trechos de log no `Makefile`, se for o caso). Linhas vazias em `esperado.txt` são ignoradas; cada linha precisa aparecer como **trecho** de alguma linha da saída, na ordem.
 
@@ -133,7 +138,7 @@ No log, o e2e exige: cabeçalho da sessão, `NOVO 4,7 kΩ qtd 10 OK`, `RETIRAR .
 2. Instala em silêncio (`/VERYSILENT /CURRENTUSER`), sem atalho e sem PATH.
 3. Confere `ohmflow.exe`, `README.md`, `LICENSE` e o desinstalador.
 4. Roda o exe instalado com o roteiro do e2e, com um `APPDATA` temporário; exige a tela de encerramento e código de saída 0.
-5. Confere que o log foi para `%APPDATA%\OhmFlow\logs` e **não** para a pasta de instalação.
+5. Confere que o log foi para `%APPDATA%\OhmFlow\logs` e o banco para `%APPDATA%\OhmFlow\ohmflow.db`, e **nenhum dos dois** para a pasta de instalação.
 6. Confere a chave de desinstalação no registro (aparece em "Aplicativos instalados").
 7. Desinstala e confere que pasta e chave sumiram.
 

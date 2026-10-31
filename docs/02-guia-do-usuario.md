@@ -261,7 +261,8 @@ Os arquivos podem ser abertos no Bloco de Notas e apagados à vontade; o program
 | Sem cores, sem limpar a tela, sem pausas | O programa está num terminal que ele não reconhece como interativo (ex.: mintty do MSYS2) ou com entrada redirecionada. Abra no Windows Terminal |
 | `ohmflow` não é reconhecido no terminal | Marque "Adicionar ao PATH" no instalador e abra um terminal **novo** |
 | "Valor inválido" para `4.7.1` ou `4kk` | O formato não é aceito. Veja a [Tabela 3](#4-como-digitar-um-valor-de-resistência) |
-| O estoque sumiu ao abrir de novo | Comportamento esperado: o estoque não é salvo entre execuções ([por quê](08-decisoes-de-projeto.md)) |
+| O estoque sumiu ao abrir de novo | O estoque só é salvo ao sair pelo menu (`Esc` ou `0`). `Ctrl+C`, fechar a janela ou queda de energia perdem o que foi feito naquela execução ([por quê](08-decisoes-de-projeto.md#d7--persistência-em-sqlite-só-ao-abrir-e-ao-sair)) |
+| Aviso "Não foi possível ler o banco" | O arquivo está ilegível. O programa abre vazio e não salva ao sair, para o arquivo ser preservado. Veja [database/README.md](../database/README.md) |
 
 ---
 

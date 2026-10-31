@@ -11,8 +11,9 @@
 #ifndef Versao
   #define Versao "0.0.0-dev"
 #endif
-; make setup passa o exe compilado com -DOHM_LOGS_APPDATA (logs em
-; %APPDATA%\OhmFlow\logs, já que a pasta de instalação pode não aceitar escrita)
+; make setup passa o exe compilado com -DOHM_LOGS_APPDATA -DOHM_DADOS_APPDATA
+; (logs e banco em %APPDATA%\OhmFlow, já que a pasta de instalação pode não
+; aceitar escrita)
 #ifndef ExeOrigem
   #define ExeOrigem "dist\ohmflow.exe"
 #endif

@@ -19,7 +19,7 @@
 ```mermaid
 flowchart TD
     A["Checkout do código"] --> B["Define VERSAO<br/>tag v1.2.3 → 1.2.3; senão 0.0.0-ci"]
-    B --> C["Instala MSYS2: gcc, make, cppcheck"]
+    B --> C["Instala MSYS2: gcc, make, cppcheck, sqlite3"]
     C --> D["Instala Inno Setup 6 (choco)"]
     D --> E["Mostra versões das ferramentas"]
     E --> F["make all com -Werror"]
@@ -68,7 +68,7 @@ O `.iss` é salvo em **UTF-8 com BOM** por causa dos acentos.
 
 ### O exe do instalador é diferente
 
-`make setup` compila um segundo executável, `dist/instalador/ohmflow.exe`, com `-DOHM_LOGS_APPDATA`. Ele grava os logs em `%APPDATA%\OhmFlow\logs`, porque `Program Files` não aceita escrita sem administrador. O `test_setup.ps1` confere isso.
+`make setup` compila um segundo executável, `dist/instalador/ohmflow.exe`, com `-DOHM_LOGS_APPDATA -DOHM_DADOS_APPDATA`. Ele grava os logs em `%APPDATA%\OhmFlow\logs` e o banco em `%APPDATA%\OhmFlow\ohmflow.db`, porque `Program Files` não aceita escrita sem administrador. O `test_setup.ps1` confere isso.
 
 ## 4. Publicar uma versão (Release)
 

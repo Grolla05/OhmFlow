@@ -225,10 +225,11 @@ O código usa `#ifdef` para gerar variações sem duplicar arquivos. A Tabela 4 
 | `_WIN32` | O compilador, no Windows | Usa a API do console do Windows (`_getch`, `SetConsoleMode`, ícone...) em vez de `termios` |
 | `OHM_ASCII` | `make EXTRA_CFLAGS=-DOHM_ASCII` | Troca `Ω`, `✔`, `╭─╮` por `ohm`, `[OK]`, `+-+` e desliga o desenho do resistor |
 | `OHM_LOGS_APPDATA` | `make setup` | Grava os logs em `%APPDATA%\OhmFlow\logs` (o exe do instalador) |
-| `_POSIX_C_SOURCE` | `ui.c`, `log.c` (fora do Windows) | Libera `isatty`, `fileno` e `mkdir` com `-std=c99` |
+| `OHM_DADOS_APPDATA` | `make setup` | Grava o banco em `%APPDATA%\OhmFlow\ohmflow.db` (o exe do instalador) |
+| `_POSIX_C_SOURCE` | `ui.c`, `log.c`, `persistencia.c` (fora do Windows) | Libera `isatty`, `fileno` e `mkdir` com `-std=c99` |
 | `VERSAO`, `VERSAO_NUM` | `Makefile` → `windres` | Versão gravada no `.exe` (Propriedades → Detalhes) |
 
-Há também a variável de ambiente `NO_COLOR` (desliga cores na execução) e `OHMFLOW_LOGS_DIR` (pasta dos logs na execução).
+Há também as variáveis de ambiente `NO_COLOR` (desliga cores na execução), `OHMFLOW_LOGS_DIR` (pasta dos logs na execução) e `OHMFLOW_DB` (arquivo do banco na execução).
 
 ---
 
