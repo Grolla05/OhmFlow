@@ -9,7 +9,12 @@
 ## 🧩 Módulo afetado
 
 - [ ] `lista` (src/lista.*)
+- [ ] `pilha` (src/pilha.*)
+- [ ] `checkpoint` (src/checkpoint.*)
 - [ ] `formatacao` (src/formatacao.*)
+- [ ] `resistor` (src/resistor.*)
+- [ ] `log` (src/log.*)
+- [ ] `persistencia` (src/persistencia.*, database/)
 - [ ] `ui` (src/ui/ui.*)
 - [ ] `telas` (src/ui/telas.*)
 - [ ] `main` (src/main.c)
@@ -25,7 +30,7 @@
 - [ ] `make test` passa sem falhas
 - [ ] `make e2e` passa sem falhas
 - [ ] `make cppcheck` sem novos warnings
-- [ ] `make asan` executado localmente no Linux **ou** CI passa (para mudanças em lógica de memória)
+- [ ] Cada `malloc` tem o seu `free` (o MinGW não tem ASan; `make asan` fica fora do CI)
 
 **Boas práticas**
 - [ ] Não há tokens, chaves ou senhas neste PR

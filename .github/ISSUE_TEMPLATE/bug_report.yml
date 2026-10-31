@@ -70,8 +70,8 @@ body:
       label: Ambiente
       description: "SO, terminal, versão do compilador (`gcc --version`), branch/commit (`git log --oneline -1`)."
       placeholder: |
-        OS: Windows 11 / Ubuntu 24.04 / macOS 15
-        Terminal: Windows Terminal / MSYS2 UCRT64 / bash
+        OS: Windows 10 / Windows 11
+        Terminal: Windows Terminal / PowerShell / cmd
         gcc: gcc (GCC) 14.2.0
         commit: abc1234 feat(lista): ...
     validations:

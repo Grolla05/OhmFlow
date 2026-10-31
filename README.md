@@ -25,13 +25,13 @@ O **OhmFlow** guarda quantos resistores de cada valor existem no laboratório: c
 
 | Boas-vindas | Menu principal |
 | :---: | :---: |
-| <!-- adicione: docs/img/boas-vindas.png --> _print em breve_ | <!-- adicione: docs/img/menu.png --> _print em breve_ |
+| ![Tela de boas-vindas](docs/prints/Figura_06_boas_vindas.png) | ![Menu principal](docs/prints/Figura_07_menu.png) |
 | **Novo (resistor colorido)** | **Estoque atual** |
-| <!-- adicione: docs/img/novo.png --> _print em breve_ | <!-- adicione: docs/img/listar.png --> _print em breve_ |
+| ![Cadastro com o resistor colorido](docs/prints/Figura_08_novo.png) | ![Tabela do estoque](docs/prints/Figura_10_listar.png) |
 | **Histórico e checkpoint** | **Encerramento** |
-| <!-- adicione: docs/img/historico.png --> _print em breve_ | <!-- adicione: docs/img/encerramento.png --> _print em breve_ |
+| ![Histórico de ações](docs/prints/Figura_19_historico.png) | ![Tela de encerramento](docs/prints/Figura_23_encerramento.png) |
 
-> Para adicionar um print, salve a imagem em `docs/img/` e troque o comentário por `![Descrição](docs/img/arquivo.png)`.
+> Todos os prints estão em [docs/prints/](docs/prints/).
 
 ## ✨ Destaques
 

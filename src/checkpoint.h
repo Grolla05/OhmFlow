@@ -7,7 +7,7 @@
  * Desfazer tira do topo de `desfazer`, aplica a inversa na lista e empilha em
  * `refazer`; refazer faz o caminho contrário. Uma ação nova esvazia `refazer`
  * (o "futuro" desfeito deixa de valer). Tudo vale só para a sessão atual: o
- * estoque não é salvo entre execuções.
+ * banco guarda o estado do estoque, não as operações.
  *
  * Posições: 0 é o início da sessão e i (1..total) é o estado logo depois da
  * i-ésima ação, em ordem cronológica. A posição atual é o tamanho de

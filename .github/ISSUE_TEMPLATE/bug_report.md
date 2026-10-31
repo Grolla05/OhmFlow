@@ -41,8 +41,8 @@ assignees: Grolla05
 
 | Campo           | Valor |
 |-----------------|-------|
-| OS              | <!-- ex.: Windows 11, Ubuntu 24.04, macOS 15 --> |
-| Terminal        | <!-- ex.: Windows Terminal, MSYS2 UCRT64, bash --> |
+| OS              | <!-- ex.: Windows 10, Windows 11 --> |
+| Terminal        | <!-- ex.: Windows Terminal, PowerShell, cmd --> |
 | gcc             | <!-- saída de `gcc --version` --> |
 | make            | <!-- saída de `make --version` --> |
 | Commit / branch | <!-- saída de `git log --oneline -1` --> |

@@ -41,7 +41,12 @@ Seguimos o padrão **Conventional Commits 1.0** com escopo obrigatório para mud
 | Escopo       | O que cobre |
 |--------------|-------------|
 | `lista`      | TAD lista dinâmica (`src/lista.*`) |
+| `pilha`      | TAD pilha de operações (`src/pilha.*`) |
+| `checkpoint` | Desfazer e refazer (`src/checkpoint.*`) |
 | `formatacao` | Parse e formatação de resistências (`src/formatacao.*`) |
+| `resistor`   | Código de cores e desenho (`src/resistor.*`) |
+| `log`        | Registro das ações (`src/log.*`) |
+| `persistencia` | Banco SQLite (`src/persistencia.*`, `database/`) |
 | `ui`         | Módulo de interface (`src/ui/`) |
 | `telas`      | Telas e menus (`src/ui/telas.*`) |
 | `main`       | Ponto de entrada (`src/main.c`) |
@@ -65,9 +70,9 @@ test(lista): adiciona casos de borda para lista vazia
 
 docs: documenta formatos de entrada no README
 
-build: adiciona alvo `make asan` para Linux
+build: adiciona alvo `make teste-setup`
 
-ci: habilita cache de pacotes no workflow do Ubuntu
+ci: habilita cache de pacotes no workflow do Windows
 ```
 
 ---

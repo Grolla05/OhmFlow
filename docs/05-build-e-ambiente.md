@@ -21,6 +21,7 @@
 | Git | Baixar o código e versionar | Sim (ou ZIP) | MSYS2 ou git-scm.com |
 | gcc (UCRT64) | Compilar | Sim | MSYS2 |
 | make | Rodar as receitas | Sim | MSYS2 |
+| sqlite3 (UCRT64) | Biblioteca estática e cabeçalho do banco | Sim | MSYS2 |
 | binutils (`windres`, `objdump`) | Embutir ícone/versão; checar subsistema | Sim (vem com o gcc) | MSYS2 |
 | cppcheck | Análise estática | Não | MSYS2 |
 | Inno Setup 6 | Gerar o instalador | Não | `winget install JRSoftware.InnoSetup` |
@@ -85,9 +86,9 @@ Rode no **Windows Terminal, PowerShell ou cmd**. O terminal do MSYS2 (mintty) n�
 | Variável | Valor | Significado |
 | --- | --- | --- |
 | `CC` | `gcc` | Compilador |
-| `CFLAGS` | `-std=c99 -Wall -Wextra -pedantic -g -Isrc -Isrc/ui` | C99 estrito, todos os avisos, símbolos de depuração, pastas de cabeçalhos |
+| `CFLAGS` | `-std=c99 -Wall -Wextra -pedantic -g -Isrc -Isrc/ui -I$(BUILD)` | C99 estrito, todos os avisos, símbolos de depuração, pastas de cabeçalhos (`build/` guarda o `schema_sql.h` gerado) |
 | `EXTRA_CFLAGS` | vazio | Gancho para `-Werror`, `-DOHM_ASCII`, sanitizers |
-| `LDLIBS` | `-lm` | Biblioteca matemática (`fabs`, `floor`, `isnan`) |
+| `LDLIBS` | `-Wl,-Bstatic -lsqlite3 -Wl,-Bdynamic -lm` | SQLite estático, sem DLL extra, e biblioteca matemática (`fabs`, `floor`, `isnan`) |
 | `VERSAO` | `1.0.0` | Versão do exe e do instalador |
 | `VERSAO_NUM` | `1,0,0,0` | Derivada de `VERSAO` (formato do VERSIONINFO; sufixos como `-ci` são descartados) |
 
@@ -101,22 +102,25 @@ No Windows (`OS=Windows_NT`) também são definidos `EXE=.exe`, `WINDRES=windres
 | --- | --- | --- |
 | `make` / `make all` | Compila os recursos (`windres`) e o programa | `dist/ohmflow.exe` |
 | `make run` | Compila se preciso e executa | — |
-| `make test` | Compila e roda as 9 suítes de teste; falha se alguma falhar | `build/test_*.exe` |
-| `make e2e` | Roda o exe com um roteiro e confere a saída e o log | `build/e2e_saida.txt`, `build/e2e_logs/` |
+| `make test` | Compila e roda as 10 suítes de teste; falha se alguma falhar | `build/test_*.exe` |
+| `make e2e` | Roda o exe com um roteiro, repete uma 2ª sessão no mesmo banco e confere as saídas e o log | `build/e2e_saida*.txt`, `build/e2e_logs/`, `build/e2e.db` |
 | `make asan` | Testes + e2e com AddressSanitizer/UBSan em `build/asan` (não funciona no MinGW; fora do CI) | — |
 | `make cppcheck` | Análise estática de `src/` | — |
 | `make icone` | Regenera `src/assets/logo/ohmflow.ico` a partir de `logo.png` (Python + Pillow) | `.ico` |
-| `make setup [VERSAO=x.y.z]` | Compila o exe do instalador (com `-DOHM_LOGS_APPDATA`) e roda o Inno Setup | `dist/instalador/ohmflow.exe`, `dist/ohm_flow_setup.exe` |
+| `make setup [VERSAO=x.y.z]` | Compila o exe do instalador (com `-DOHM_LOGS_APPDATA -DOHM_DADOS_APPDATA`) e roda o Inno Setup | `dist/instalador/ohmflow.exe`, `dist/ohm_flow_setup.exe` |
 | `make teste-setup` | Gera o setup e roda `tests/setup/test_setup.ps1` | — |
-| `make clean` | Apaga `build/` e `dist/` | — |
+| `make clean` | Apaga `build/` e `dist/` por inteiro, sem passar pela Lixeira, inclusive banco e logs criados ao abrir o exe de dentro de `dist/` | — |
 
 ### 5.3 Como o executável é montado
 
 ```mermaid
 flowchart LR
     RC["src/assets/ohmflow.rc<br/>+ ohmflow.ico"] -- windres --> RES["build/ohmflow_res.o"]
-    SRC["main.c + lista.c + pilha.c + checkpoint.c<br/>+ formatacao.c + resistor.c + log.c + ui.c + telas.c"] -- gcc --> EXE["dist/ohmflow.exe"]
+    SQL["database/database.sql"] -- sed --> SCH["build/schema_sql.h"]
+    SCH --> SRC
+    SRC["main.c + lista.c + pilha.c + checkpoint.c<br/>+ formatacao.c + resistor.c + log.c<br/>+ persistencia.c + ui.c + telas.c"] -- gcc --> EXE["dist/ohmflow.exe"]
     RES --> EXE
+    LIB["libsqlite3 (estática)"] --> EXE
 ```
 
 **Figura 1 — Do código ao executável**
@@ -141,15 +145,17 @@ Os **testes** são compilados com os mesmos arquivos da biblioteca (`SRC_LIB`, t
 | Só ASCII | `make EXTRA_CFLAGS=-DOHM_ASCII` | `ohm`, `[OK]`, `+-|` no lugar de `Ω`, `✔`, molduras |
 | Sem cores | `$env:NO_COLOR=1` antes de executar | — |
 | Pasta dos logs | `$env:OHMFLOW_LOGS_DIR='C:\temp\logs'` | — |
+| Arquivo do banco | `$env:OHMFLOW_DB='C:\temp\ohmflow.db'` | — |
 | Validação completa | `make clean; make EXTRA_CFLAGS=-Werror all test e2e cppcheck` | O mesmo que o CI faz (menos o instalador) |
 
 ## 7. Arquivos gerados
 
 | Pasta | Conteúdo | Versionada? |
 | --- | --- | --- |
-| `build/` | `ohmflow_res.o`, `test_*.exe`, `e2e_saida.txt`, `e2e_logs/`, `asan/` | Não |
+| `build/` | `schema_sql.h`, `ohmflow_res.o`, `test_*.exe`, `e2e_saida*.txt`, `e2e_logs/`, `e2e.db`, `asan/` | Não |
 | `dist/` | `ohmflow.exe`, `instalador/ohmflow.exe`, `ohm_flow_setup.exe` | Não |
 | `logs/` | Logs do `make run` | Não |
+| `database/*.db` | Banco do `make run` (o `database.sql` é versionado) | Não |
 
 ## 8. Problemas comuns
 
@@ -157,6 +163,8 @@ Os **testes** são compilados com os mesmos arquivos da biblioteca (`SRC_LIB`, t
 | --- | --- |
 | `gcc`/`make` não reconhecido | Refaça o passo 4 e abra um PowerShell novo |
 | `winget` não reconhecido | Instale o "App Installer" pela Microsoft Store |
+| `sqlite3.h: No such file or directory` | Falta `mingw-w64-ucrt-x86_64-sqlite3`; refaça o passo 3 |
+| `Cannot create temporary file in C:\WINDOWS\` | A variável `TEMP` aponta para uma pasta sem escrita; aponte-a para uma pasta sua |
 | `SETUP FALHOU: ISCC.exe ... nao encontrado` | `winget install JRSoftware.InnoSetup` |
 | Erro de `windres` sobre o `.ico` | O ícone foi apagado: `git checkout src/assets/logo/ohmflow.ico` ou `make icone` |
 | `make asan` falha no Windows | Esperado: o MinGW não tem AddressSanitizer |
